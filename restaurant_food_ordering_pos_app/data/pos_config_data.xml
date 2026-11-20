@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dedicated "Mobile App" point of sale (holds app carts and orders) with its own
+         card/online payment method. Created through a function so the installation never fails
+         on databases without a chart of accounts: in that case it is created on the first API call.
+         Its id is stored in the setting restaurant_food_ordering_pos_app.app_pos_config_id. -->
+    <function model="pos.order" name="_app_install_mobile_config"/>
+</odoo>

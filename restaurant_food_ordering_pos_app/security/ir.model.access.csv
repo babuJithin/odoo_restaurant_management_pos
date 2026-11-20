@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_color_info_user,name_color_info_user,model_color_info,,1,1,1,1
+access_app_image_attachments_user,name_app_image_attachments_user,model_app_image_attachments,,1,1,1,1
+access_banner_element,view.banner.element,model_banner_element,,1,1,1,1
+access_deal_element,view.deal.element,model_deal_element,,1,1,1,1
+access_banner_element_item,view.banner.element.item,model_banner_element_item,,1,1,1,1
+access_res_partner_model,view.res.partner.model,base.model_res_partner,,1,1,1,1
+access_payment_type_model,view.payment.type.model,model_payment_type,,1,1,1,1
+access_home_delivery_type_user,home.delivery.type.user,model_home_delivery_type,base.group_user,1,1,1,1
+access_zone_location_user,zone.location.user,model_zone_location,base.group_user,1,1,1,1
+access_guest_session_user,guest.session.user,model_guest_session,base.group_user,1,1,1,1
+access_user_otp_registry_user,user.otp.registry.user,model_user_otp_registry,base.group_user,1,1,1,1
+access_product_brand_user,product.brand.user,model_product_brand,base.group_user,1,1,1,1

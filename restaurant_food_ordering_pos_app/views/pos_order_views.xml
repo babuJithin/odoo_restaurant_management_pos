@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_order_form_mobile_app" model="ir.ui.view">
+        <field name="name">pos.order.form.mobile.app</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Mobile App" name="mobile_app" invisible="not is_app_order">
+                    <group>
+                        <group>
+                            <field name="is_app_order"/>
+                            <field name="cart_chekouted"/>
+                            <field name="order_platform"/>
+                            <field name="marketplace_state"/>
+                            <field name="payment_type"/>
+                            <field name="payment_method"/>
+                            <field name="transaction_id"/>
+                        </group>
+                        <group>
+                            <field name="partner_shipping_id"/>
+                            <field name="carrier_id"/>
+                            <field name="delivery_date"/>
+                            <field name="home_delivery_type"/>
+                            <field name="cart_zone"/>
+                            <field name="vehicle_details"/>
+                            <field name="guest_checkout"/>
+                            <field name="guest_user_id" invisible="not guest_checkout"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pos_order_search_mobile_app" model="ir.ui.view">
+        <field name="name">pos.order.search.mobile.app</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="mobile_app_orders" string="Mobile App Orders"
+                        domain="[('is_app_order', '=', True), ('cart_chekouted', '=', True)]"/>
+                <filter name="mobile_app_carts" string="Mobile App Carts"
+                        domain="[('is_app_order', '=', True), ('cart_chekouted', '=', False), ('state', '=', 'draft')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="payment_type_form_pos_method" model="ir.ui.view">
+        <field name="name">payment.type.form.pos.method</field>
+        <field name="model">payment.type</field>
+        <field name="inherit_id" ref="restaurant_food_ordering_pos_app.payment_type_form"/>
+        <field name="arch" type="xml">
+            <field name="type" position="after">
+                <field name="pos_payment_method_id" invisible="type == 'cash'"/>
+            </field>
+        </field>
+    </record>
+
+    <menuitem id="menu_payment_type_pos"
+              name="App Payment Types"
+              action="action_payment_type_view"
+              parent="point_of_sale.menu_point_config_product"
+              sequence="90"/>
+</odoo>

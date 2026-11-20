@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_mobile_app" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.mobile.app.pos</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='restaurant_section']" position="before">
+                <block title="Mobile App Orders" id="mobile_app_pos_section">
+                    <setting string="Mobile App Point of Sale"
+                             help="Point of sale holding the app carts and orders (its session opens automatically).">
+                        <field name="app_pos_config_id" options="{'no_create': True}"/>
+                    </setting>
+                    <setting string="Send App Orders To"
+                             help="Restaurant point of sale receiving app orders at checkout, when its session is open.">
+                        <field name="app_target_pos_config_id" options="{'no_create': True}"/>
+                    </setting>
+                    <setting string="Abandoned Carts"
+                             help="Cancel carts untouched for this many days when the Mobile App session closes (0 = never).">
+                        <field name="app_cart_expiry_days"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

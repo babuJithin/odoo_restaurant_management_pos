@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_template_app_pos_order" model="mail.template">
+            <field name="name">Mobile App: Order Confirmation</field>
+            <field name="description">Sent to the customer when a mobile app order is checked out</field>
+            <field name="model_id" ref="point_of_sale.model_pos_order"/>
+            <field name="subject">{{ object.company_id.name }} - Order {{ object.name if object.name != '/' else object.pos_reference }}</field>
+            <field name="email_from">{{ (object.company_id.email_formatted or user.email_formatted) }}</field>
+            <field name="email_to">{{ object.email or object.partner_shipping_id.email or object.partner_id.email or '' }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="lang">{{ object.partner_id.lang or user.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+                <div style="margin: 0; padding: 0; font-size: 14px;">
+                    <t t-set="ref" t-value="object.name if object.name != '/' else object.pos_reference"/>
+                    <t t-set="currency" t-value="object.currency_id"/>
+                    <p>
+                        <t t-if="object.partner_shipping_id.name or object.partner_id.name">
+                            Hello <t t-out="object.partner_shipping_id.name or object.partner_id.name">Customer</t>,
+                        </t>
+                        <t t-else="">Hello,</t>
+                    </p>
+                    <p>Thank you for your order <strong t-out="ref">Order</strong>. Here is a summary:</p>
+                    <table style="width: 100%; border-collapse: collapse;" border="0" cellpadding="4">
+                        <thead>
+                            <tr style="border-bottom: 1px solid #ccc; text-align: left;">
+                                <th>Product</th>
+                                <th style="text-align: right;">Quantity</th>
+                                <th style="text-align: right;">Unit Price</th>
+                                <th style="text-align: right;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="object.lines" t-as="line">
+                                <td t-out="line.full_product_name or line.product_id.display_name">Product</td>
+                                <td style="text-align: right;" t-out="line.qty">1</td>
+                                <td style="text-align: right;" t-out="format_amount(line.price_unit, currency)">0.00</td>
+                                <td style="text-align: right;" t-out="format_amount(line.price_subtotal_incl, currency)">0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="text-align: right;">
+                        Taxes: <t t-out="format_amount(object.amount_tax, currency)">0.00</t><br/>
+                        <strong>Total: <t t-out="format_amount(object.amount_total, currency)">0.00</t></strong>
+                    </p>
+                    <p t-if="object.partner_shipping_id">
+                        Delivery address: <t t-out="object.partner_shipping_id.contact_address or ''">Address</t>
+                    </p>
+                    <p>With kind regards,<br/><t t-out="object.company_id.name">Company</t></p>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>
