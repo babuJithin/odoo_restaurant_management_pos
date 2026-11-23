@@ -20,8 +20,8 @@ class ColorInfo(models.Model):
     @api.constrains('code')
     def _check_color_code(self):
         for record in self:
-            if not record.code or record.code != record.code.upper():
-                raise ValidationError(_('Color code must be provided and in uppercase.'))
+            if not record.code:
+                raise ValidationError(_('Color code must be provided.'))
 
 
 class AppImageAttachments(models.Model):
