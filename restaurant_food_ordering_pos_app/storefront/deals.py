@@ -20,7 +20,7 @@ class MobileDealElement(models.Model):
     # NOTE: 'limit' is not a valid Many2many field kwarg - it was silently
     # ignored even in Odoo 17. Cap the number of selectable records via a
     # domain/context on the view field instead of here, if that's the intent.
-    categ_ids = fields.Many2many('product.public.category', string="Category", tracking=True)
+    categ_ids = fields.Many2many('pos.category', string="Category", tracking=True)
     product_ids = fields.Many2many('product.template', string="Products", tracking=True)
 
     @api.model_create_multi
@@ -34,6 +34,4 @@ class MobileDealElement(models.Model):
     def set_domain_for_categ_id(self):
         # NOTE: @api.depends is for compute methods only - it was removed
         # here since this is an onchange handler, not a computed field.
-        categ_ids = self.env["product.public.category"].search(
-            [('product_tmpl_ids', 'in', self.product_ids.ids)])
-        self.categ_ids = categ_ids
+        self.categ_ids = self.product_ids.pos_categ_ids

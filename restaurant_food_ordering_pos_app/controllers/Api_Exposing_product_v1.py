@@ -17,7 +17,7 @@ import os
 
 _logger = logging.getLogger(__name__)
 
-base_url = "http://3.7.90.229:8019"
+base_url = "https://babujithin-odoo-restaurant-management-pos1.odoo.com"
 
 
 class log_in_credentials_v1(http.Controller):
@@ -28,17 +28,17 @@ class log_in_credentials_v1(http.Controller):
     def getallCategory_list_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         # kwargs = http.request.jsonrequest or kwargs
-        categories = request.env['product.public.category'].sudo().search(
+        categories = request.env['pos.category'].sudo().search(
             [('parent_id', '=', False)], order="sequence")
         category_info = []
         product_categories = []
         service_categories = []
         print(product_categories,service_categories,categories)
         for cat in categories:
-            subcategories = request.env['product.public.category'].sudo().search(
+            subcategories = request.env['pos.category'].sudo().search(
                 [('parent_id', '=', cat.id)])
 
-            if cat.category_type == 'Product':
+            if cat.category_type in ('Product', False):
                 target_array = product_categories
             elif cat.category_type == 'Service':
                 target_array = service_categories
@@ -50,11 +50,11 @@ class log_in_credentials_v1(http.Controller):
                     "parent_category": cat.parent_id.id if cat.parent_id.id else 0,
                     "status": "1",
                     "banner_image": "http://" + str(
-                        http.request.httprequest.host) + "/website/image/product.public.category/{}/banner".format(
+                        http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
                         cat.id) if cat.banner else "False",
                     "category_image": "http://" + str(
-                        http.request.httprequest.host) + "/website/image/product.public.category/{}/image_1920".format(
-                        cat.id) if cat.image_1920 else "False",
+                        http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                        cat.id) if cat.image_512 else "False",
                     "created_at_date": cat.create_date.strftime('%Y-%m-%d'),
                     "created_at": cat.create_date.strftime('%Y-%m-%d'),
                     "child_cat": [],
@@ -62,18 +62,18 @@ class log_in_credentials_v1(http.Controller):
                     "note": cat.note if cat.note else ""
                     }
             for subcat in subcategories:
-                subchild = request.env['product.public.category'].sudo().search([('parent_id', '=', subcat.id)])
+                subchild = request.env['pos.category'].sudo().search([('parent_id', '=', subcat.id)])
                 vals1 = {"category_id": subcat.id if subcat.id else 0,
                          "category": subcat.name if subcat.name else "",
                          "category_type": subcat.category_type if subcat.category_type else "",
                          "parent_category": subcat.parent_id.id if subcat.parent_id.id else 0,
                          "status": "1",
                          "banner_image": "http://" + str(
-                             http.request.httprequest.host) + "/website/image/product.public.category/{}/banner".format(
+                             http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
                              cat.id) if cat.banner else "False",
                          "category_image": "http://" + str(
-                             http.request.httprequest.host) + "/website/image/product.public.category/{}/image_1920".format(
-                             subcat.id) if subcat.image_1920 else "False",
+                             http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                             subcat.id) if subcat.image_512 else "False",
                          "created_at_date": subcat.create_date.strftime('%Y-%m-%d'),
                          "created_at": subcat.create_date.strftime('%Y-%m-%d'),
                          "child_cat": [],
@@ -85,7 +85,7 @@ class log_in_credentials_v1(http.Controller):
                 if vals['child_cat']:
                     vals['child_cat_exists'] = True
                 for child in subchild:
-                    smallchild = request.env['product.public.category'].sudo().search(
+                    smallchild = request.env['pos.category'].sudo().search(
                         [('parent_id', '=', child.id)])
 
                     vals2 = {"category_id": child.id if child.id else 0,
@@ -93,11 +93,11 @@ class log_in_credentials_v1(http.Controller):
                              "parent_category": child.parent_id.id if child.parent_id.id else 0,
                              "status": "1",
                              "banner_image": "http://" + str(
-                                 http.request.httprequest.host) + "/website/image/product.public.category/{}/banner".format(
+                                 http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
                                  cat.id) if cat.banner else "False",
                              "category_image": "http://" + str(
-                                 http.request.httprequest.host) + "/website/image/product.public.category/{}/image_1920".format(
-                                 child.id) if child.image_1920 else "False",
+                                 http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                                 child.id) if child.image_512 else "False",
                              "created_at_date": child.create_date.strftime('%Y-%m-%d'),
                              "created_at": child.create_date.strftime('%Y-%m-%d'),
                              "child_cat": [],
@@ -114,8 +114,8 @@ class log_in_credentials_v1(http.Controller):
                                  "parent_category": child1.parent_id.id if child1.parent_id.id else 0,
                                  "status": "1",
                                  "category_image": "http://" + str(
-                                     http.request.httprequest.host) + "/website/image/product.public.category/{}/image_1920".format(
-                                     child1.id) if child1.image_1920 else "False",
+                                     http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                                     child1.id) if child1.image_512 else "False",
                                  "created_at_date": child1.create_date.strftime('%Y-%m-%d'),
                                  "created_at": child1.create_date.strftime('%Y-%m-%d'),
                                  "child_cat": [],
@@ -137,24 +137,24 @@ class log_in_credentials_v1(http.Controller):
         kwargs = http.request.get_json_data() or kwargs
         categ_id = kwargs.get('categ_id')
         if categ_id:
-            categories = request.env['product.public.category'].sudo().search([('parent_id', '=', int(categ_id))],
+            categories = request.env['pos.category'].sudo().search([('parent_id', '=', int(categ_id))],
                                                                               order='sequence')
         else:
-            categories = request.env['product.public.category'].sudo().search([('parent_id', '!=', False)],
+            categories = request.env['pos.category'].sudo().search([('parent_id', '!=', False)],
                                                                               order='sequence')
         category_info = []
         for cat in categories:
-            subcategories = request.env['product.public.category'].sudo().search([('parent_id', '=', cat.id)])
+            subcategories = request.env['pos.category'].sudo().search([('parent_id', '=', cat.id)])
             vals = {"category_id": cat.id if cat.id else 0,
                     "category": cat.name if cat.name else "",
                     "category_type": cat.category_type if cat.category_type else "",
                     "parent_category": cat.parent_id.id if cat.parent_id.id else 0,
                     "status": "1",
                     "category_image": "http://" + str(
-                        http.request.httprequest.host) + "/website/image/product.public.category/{}/image_1920".format(
-                        cat.id) if cat.image_1920 else "False",
+                        http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                        cat.id) if cat.image_512 else "False",
                     "banner_image": "http://" + str(
-                        http.request.httprequest.host) + "/website/image/product.public.category/{}/banner".format(
+                        http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
                         cat.id) if cat.banner else "False",
 
                     "created_at_date": cat.create_date.strftime('%Y-%m-%d'),
@@ -164,17 +164,17 @@ class log_in_credentials_v1(http.Controller):
                     "note": cat.note if cat.note else ""
                     }
             for subcat in subcategories:
-                subchild = request.env['product.public.category'].sudo().search([('parent_id', '=', subcat.id)])
+                subchild = request.env['pos.category'].sudo().search([('parent_id', '=', subcat.id)])
                 vals1 = {"category_id": subcat.id if subcat.id else 0,
                          "category": subcat.name if subcat.name else "",
                          "parent_category": subcat.parent_id.id if subcat.parent_id.id else 0,
                          "status": "1",
                          "banner_image": "http://" + str(
-                             http.request.httprequest.host) + "/website/image/product.public.category/{}/banner".format(
+                             http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
                              cat.id) if cat.banner else "False",
                          "category_image": "http://" + str(
-                             http.request.httprequest.host) + "/website/image/product.public.category/{}/image_1920".format(
-                             subcat.id) if subcat.image_1920 else "False",
+                             http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                             subcat.id) if subcat.image_512 else "False",
                          "created_at_date": subcat.create_date.strftime('%Y-%m-%d'),
                          "created_at": subcat.create_date.strftime('%Y-%m-%d'),
                          "child_cat": [],
@@ -185,7 +185,7 @@ class log_in_credentials_v1(http.Controller):
                 if vals['child_cat']:
                     vals['child_cat_exists'] = True
                 for child in subchild:
-                    smallchild = request.env['product.public.category'].sudo().search(
+                    smallchild = request.env['pos.category'].sudo().search(
                         [('parent_id', '=', child.id)])
 
                     vals2 = {"category_id": child.id if child.id else 0,
@@ -193,11 +193,11 @@ class log_in_credentials_v1(http.Controller):
                              "parent_category": child.parent_id.id if child.parent_id.id else 0,
                              "status": "1",
                              "banner_image": "http://" + str(
-                                 http.request.httprequest.host) + "/website/image/product.public.category/{}/banner".format(
+                                 http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
                                  cat.id) if cat.banner else "False",
                              "category_image": "http://" + str(
-                                 http.request.httprequest.host) + "/website/image/product.public.category/{}/image_1920".format(
-                                 child.id) if child.image_1920 else "False",
+                                 http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                                 child.id) if child.image_512 else "False",
                              "created_at_date": child.create_date.strftime('%Y-%m-%d'),
                              "created_at": child.create_date.strftime('%Y-%m-%d'),
                              "child_cat": [],
@@ -213,8 +213,8 @@ class log_in_credentials_v1(http.Controller):
                                  "parent_category": child1.parent_id.id if child1.parent_id.id else 0,
                                  "status": "1",
                                  "category_image": "http://" + str(
-                                     http.request.httprequest.host) + "/website/image/product.public.category/{}/image_1920".format(
-                                     child1.id) if child1.image_1920 else "False",
+                                     http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                                     child1.id) if child1.image_512 else "False",
                                  "created_at_date": child1.create_date.strftime('%Y-%m-%d'),
                                  "created_at": child1.create_date.strftime('%Y-%m-%d'),
                                  "child_cat": [],
@@ -260,7 +260,7 @@ class log_in_credentials_v1(http.Controller):
             distance = geodesic(seller_location, customer_location).kilometers
             if distance <= seller_shop.radius:
                 seller_available_prod.extend(seller_shop.seller_product_ids.ids)
-        domain = [('sale_ok', '=', True), ('is_published', '=', True), ('available_in_pos', '=', True), ('id', 'in', seller_available_prod)]
+        domain = [('available_in_pos', '=', True), ('id', 'in', seller_available_prod)]
         if kwargs.get('brandId'):
             domain.append(('brand_id', '=', int(kwargs.get('brandId'))))
             try:
@@ -275,9 +275,9 @@ class log_in_credentials_v1(http.Controller):
                 elif kwargs.get('sort') == 'AZ':
                     products = request.env['product.template'].sudo().search(domain, order='name')
                 else:
-                    products = request.env['product.template'].sudo().search(domain, order='website_sequence')
+                    products = request.env['product.template'].sudo().search(domain, order='pos_sequence, name')
             except:
-                products = request.env['product.template'].sudo().search(domain, order='website_sequence')
+                products = request.env['product.template'].sudo().search(domain, order='pos_sequence, name')
 
             product_types = [{'id': i.id, 'name': i.name} for i in products.feed_product_type]
             brand_ids = [{'id': i.id, 'name': i.name} for i in
@@ -379,9 +379,9 @@ class log_in_credentials_v1(http.Controller):
         offset_start = offset * limit
         offset_end = offset_start + limit
 
-        domain = [('sale_ok', '=', True), ('is_published', '=', True), ('available_in_pos', '=', True)]
+        domain = [('available_in_pos', '=', True)]
         if kwargs.get('categId'):
-            domain.append(('public_categ_ids', 'in', int(kwargs.get('categId'))))
+            domain.append(('pos_categ_ids', 'in', int(kwargs.get('categId'))))
             try:
                 if kwargs.get('sort') == 'HL':
                     products = request.env['product.template'].sudo().search(domain, order='list_price desc')
@@ -394,9 +394,9 @@ class log_in_credentials_v1(http.Controller):
                 elif kwargs.get('sort') == 'AZ':
                     products = request.env['product.template'].sudo().search(domain, order='name')
                 else:
-                    products = request.env['product.template'].sudo().search(domain, order='website_sequence')
+                    products = request.env['product.template'].sudo().search(domain, order='pos_sequence, name')
             except:
-                products = request.env['product.template'].sudo().search(domain, order='website_sequence')
+                products = request.env['product.template'].sudo().search(domain, order='pos_sequence, name')
 
             products = products[offset_start:offset_end]
             if len(products) > 0:
@@ -421,13 +421,13 @@ class log_in_credentials_v1(http.Controller):
                         "product_id": product.id if product.id else 0,
                         "detailed_type": product.type or "",
                         "main_category_id":
-                            [categ_id for categ_id in product.public_categ_ids][
+                            [categ_id for categ_id in product.pos_categ_ids][
                                 0].id,
 
                         "category_name":
-                            [categ_id for categ_id in product.public_categ_ids if
+                            [categ_id for categ_id in product.pos_categ_ids if
                              categ_id.id == int(kwargs.get('categId'))][0].name if
-                            [categ_id for categ_id in product.public_categ_ids if
+                            [categ_id for categ_id in product.pos_categ_ids if
                              categ_id.id == int(kwargs.get('categId'))][0].name else "",
                         "is_wishlist": False,
                         "product": product.name if product.name else "",
@@ -442,8 +442,8 @@ class log_in_credentials_v1(http.Controller):
                         "status": "1",
                         "brand": product.brand_id.name or "",
                         "main_category_id":
-                            [categ_id for categ_id in product.public_categ_ids if categ_id.parent_id.id == False][
-                                0].id if [categ_id for categ_id in product.public_categ_ids if
+                            [categ_id for categ_id in product.pos_categ_ids if categ_id.parent_id.id == False][
+                                0].id if [categ_id for categ_id in product.pos_categ_ids if
                                           categ_id.parent_id.id == False] else "",
                         "product_image": "http://" + str(
                             http.request.httprequest.host) + "/website/image/product.template/{}/image_1920".format(
@@ -481,9 +481,9 @@ class log_in_credentials_v1(http.Controller):
                             "product_type_name": ','.join(
                                 [str(v.display_name) for v in variant.product_template_attribute_value_ids]),
                             "main_category_id":
-                                [categ_id for categ_id in variant.public_categ_ids if
+                                [categ_id for categ_id in variant.pos_categ_ids if
                                  categ_id.parent_id.id == False][
-                                    0].id if [categ_id for categ_id in variant.public_categ_ids if
+                                    0].id if [categ_id for categ_id in variant.pos_categ_ids if
                                               categ_id.parent_id.id == False] else "",
                             "is_wishlist": False,
                             "product_type_url": str(variant.website_url),
@@ -526,7 +526,7 @@ class log_in_credentials_v1(http.Controller):
         kwargs = http.request.get_json_data() or kwargs
         if kwargs.get('productId'):
             product = request.env['product.template'].sudo().search(
-                [('id', '=', int(kwargs.get('productId'))), ('is_published', '=', True), ('available_in_pos', '=', True)])
+                [('id', '=', int(kwargs.get('productId'))), ('available_in_pos', '=', True)])
             if product:
                 products_info = []
                 try:
@@ -560,8 +560,8 @@ class log_in_credentials_v1(http.Controller):
                     "country_of_origin_flag": "http://" + str(
                         http.request.httprequest.host) + product.country_of_origin.image_url if product.country_of_origin.image_url else "",
                     "main_category_id":
-                        [categ_id for categ_id in product.public_categ_ids if categ_id.parent_id.id == False][
-                            0].id if [categ_id for categ_id in product.public_categ_ids if
+                        [categ_id for categ_id in product.pos_categ_ids if categ_id.parent_id.id == False][
+                            0].id if [categ_id for categ_id in product.pos_categ_ids if
                                       categ_id.parent_id.id == False] else "",
                     "status": "1",
                     "product_image": "http://" + str(
@@ -610,8 +610,8 @@ class log_in_credentials_v1(http.Controller):
                         "product_type_name": ','.join(
                             [str(v.display_name) for v in variant.product_template_attribute_value_ids]),
                         "main_category_id":
-                            [categ_id for categ_id in variant.public_categ_ids if categ_id.parent_id.id == False][
-                                0].id if [categ_id for categ_id in variant.public_categ_ids if
+                            [categ_id for categ_id in variant.pos_categ_ids if categ_id.parent_id.id == False][
+                                0].id if [categ_id for categ_id in variant.pos_categ_ids if
                                           categ_id.parent_id.id == False] else "",
                         "is_wishlist": False,
                         "product_type_url": str(variant.website_url),
@@ -649,12 +649,12 @@ class log_in_credentials_v1(http.Controller):
                 else:
                     vals['is_wishlist'] = False
                     vals1['is_wishlist'] = False
-                main_category_prds = [categ_id for categ_id in product.public_categ_ids if categ_id.parent_id.id == False][
-                            0].id if [categ_id for categ_id in product.public_categ_ids if
+                main_category_prds = [categ_id for categ_id in product.pos_categ_ids if categ_id.parent_id.id == False][
+                            0].id if [categ_id for categ_id in product.pos_categ_ids if
                                       categ_id.parent_id.id == False] else ""
                 if main_category_prds:
                     id_main_category = int(main_category_prds)
-                    main_category_templates = request.env['product.template'].sudo().search([('id','!=',product.id),('public_categ_ids','in',[id_main_category]), ('available_in_pos', '=', True)])
+                    main_category_templates = request.env['product.template'].sudo().search([('id','!=',product.id),('pos_categ_ids','in',[id_main_category]), ('available_in_pos', '=', True)])
                     for main_category_template in main_category_templates:
                         main_categ_temp_val= {
                             "product_id": main_category_template.id if main_category_template.id else 0,
@@ -695,7 +695,7 @@ class log_in_credentials_v1(http.Controller):
 
 
         products = request.env['product.template'].sudo().search(
-            [('is_published', '=', True), ('available_in_pos', '=', True)])[offset_start:offset_end]
+            [('available_in_pos', '=', True)])[offset_start:offset_end]
         products_info = []
         pro = []
 
@@ -705,22 +705,22 @@ class log_in_credentials_v1(http.Controller):
             pro.extend([x for x in request.env['product.template'].sudo().search(
                 ['|', '|', '|', ('name', 'ilike', str(catName)), ('default_code', 'ilike', str(catName)),
                  ('barcode', 'ilike', str(catName)), ('brand_id.name', 'ilike', str(catName)),
-                 ('public_categ_ids', 'in', int(kwargs.get('categ_id'))),
-                 ('is_published', '=', True), ('available_in_pos', '=', True)])[offset_start:offset_end]])
+                 ('pos_categ_ids', 'in', int(kwargs.get('categ_id'))),
+                 ('available_in_pos', '=', True)])[offset_start:offset_end]])
             products = pro
         else:
             products = request.env['product.template'].sudo().search(
                 ['|', '|', '|', ('name', 'ilike', str(catName)), ('default_code', 'ilike', str(catName)),
                  ('barcode', 'ilike', str(catName)), ('brand_id.name', 'ilike', str(catName)),
-                 ('is_published', '=', True), ('available_in_pos', '=', True), ])[offset_start:offset_end]
-            categories = request.env['product.public.category'].sudo().search(
+                 ('available_in_pos', '=', True), ])[offset_start:offset_end]
+            categories = request.env['pos.category'].sudo().search(
                 [('parent_id', '=', False), ('name', 'ilike', str(catName))])
 
             if categories:
                 for cat in categories:
                     pro.extend([x for x in request.env['product.template'].sudo().search(
-                        [('public_categ_ids', 'in', int(cat.id)),
-                         ('is_published', '=', True), ('available_in_pos', '=', True)])])
+                        [('pos_categ_ids', 'in', int(cat.id)),
+                         ('available_in_pos', '=', True)])])
                 products = pro[offset_start:offset_end]
 
         for product in products:
@@ -737,8 +737,8 @@ class log_in_credentials_v1(http.Controller):
                 "price": product.list_price or 0,
                 "status": "1",
                 "main_category_id":
-                    [categ_id for categ_id in product.public_categ_ids if categ_id.parent_id.id == False][0].id if [
-                        categ_id for categ_id in product.public_categ_ids if
+                    [categ_id for categ_id in product.pos_categ_ids if categ_id.parent_id.id == False][0].id if [
+                        categ_id for categ_id in product.pos_categ_ids if
                         categ_id.parent_id.id == False] else "",
 
                 "updated_at": product.write_date.strftime('%Y-%m-%d'),
@@ -762,8 +762,8 @@ class log_in_credentials_v1(http.Controller):
                     "product_type_name": ','.join(
                         [str(v.display_name) for v in variant.product_template_attribute_value_ids]),
                     "main_category_id":
-                        [categ_id for categ_id in variant.public_categ_ids if categ_id.parent_id.id == False][
-                            0].id if [categ_id for categ_id in variant.public_categ_ids if
+                        [categ_id for categ_id in variant.pos_categ_ids if categ_id.parent_id.id == False][
+                            0].id if [categ_id for categ_id in variant.pos_categ_ids if
                                       categ_id.parent_id.id == False] else "",
                     "is_wishlist": False,
                     "product_type_url": str(variant.website_url),

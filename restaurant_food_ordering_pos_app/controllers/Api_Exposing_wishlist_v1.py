@@ -68,9 +68,9 @@ class Ecommerce_Api_Wishlist_V1(http.Controller):
                     vals = {
                         "product_id": i.product_id.product_tmpl_id.id,
                         "main_category_id":
-                            [categ_id.id for categ_id in i.product_id.product_tmpl_id.public_categ_ids if
+                            [categ_id.id for categ_id in i.product_id.product_tmpl_id.pos_categ_ids if
                              categ_id.parent_id.id == False][0] if [categ_id.id for categ_id in
-                                                                    i.product_id.product_tmpl_id.public_categ_ids if
+                                                                    i.product_id.product_tmpl_id.pos_categ_ids if
                                                                     categ_id.parent_id.id == False] else '',
                         "is_wishlist": True,
                         "product": i.product_id.product_tmpl_id.name or "",
@@ -114,7 +114,7 @@ class Ecommerce_Api_Wishlist_V1(http.Controller):
                         }
 
                         vals['product_type'].append(vals1)
-                    if i.product_id.product_tmpl_id.active == True and i.product_id.product_tmpl_id.is_published == True:
+                    if i.product_id.product_tmpl_id.active == True and i.product_id.product_tmpl_id.available_in_pos == True:
                         vals['available'] = True
                     all_wishlist.append(vals)
 

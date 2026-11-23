@@ -473,7 +473,7 @@ class Ecommerce_Api_V1(http.Controller):
             rec = {
                 "product_id": i.product_id.id,
                 "product_name": i.product_id.name,
-                "category_name": i.product_id.categ_id.name,
+                "category_name": i.product_id.pos_categ_ids[:1].name or "",
                 "internal_reference": i.product_id.default_code or "",
                 "order_qty": i.qty or 0.0,
                 "unit_price": i.price_unit or 0.0,

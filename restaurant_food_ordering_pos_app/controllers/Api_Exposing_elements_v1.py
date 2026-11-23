@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 import logging
 import itertools
 
-base_url_local = "http://3.7.90.229:8019"
+base_url_local = "https://babujithin-odoo-restaurant-management-pos1.odoo.com"
 # base_url_local = "http://localhost:8035"
 
 _logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class banner_credentials_v1(http.Controller):
                                "sequence": banner.sequence, "element_type": banner.element_type or "","scroll_type":banner.scroll_type or "","grid_count":int(banner.grid_count),
                                "banner_items": [{
                                    "url": base_url_local+"/website/image/banner.element.item/{}/image".format(
-                                       x.id) if x.image else base_url_local+"/website/image/product.public.category/{}/image_1920".format(
+                                       x.id) if x.image else base_url_local+"/web/image/pos.category/{}/image_512".format(
                                        x.categ_id.id) if x.element_type == "category" else "",
                                    "color": x.color if x.color else "NO",
                                    "product_id": x.product_id.id if x.product_id else 0,
@@ -34,7 +34,7 @@ class banner_credentials_v1(http.Controller):
                                    "categ_name": x.categ_id.name if x.categ_id.name else "" if x.category_wise or x.element_type == "category" else "",
                                    "categ_id": x.categ_id.id if x.categ_id.id else 0 if x.category_wise or x.element_type == "category" else 0,
                                    "sub_categ_ids": [{"name": sub.name, "sub_categ_id": sub.id,
-                                                      "url": base_url_local+"/website/image/product.public.category/{}/image_1920".format(
+                                                      "url": base_url_local+"/web/image/pos.category/{}/image_512".format(
                                                           sub.id)} for sub in x.sub_categ_ids]} for
                                    x in banner.banner_items]}
                 banner_info.append(banner_vals)
@@ -66,8 +66,8 @@ class banner_credentials_v1(http.Controller):
                         discount_price = 0
                     vals = {
                         "product_id": product.id if product.id else 0,
-                        "main_category_id": product.categ_id.id if product.categ_id.id else 0,
-                        "category_name": product.categ_id.name if product.categ_id.name else 0,
+                        "main_category_id": product.pos_categ_ids[:1].id or 0,
+                        "category_name": product.pos_categ_ids[:1].name or "",
                         "is_wishlist": False,
                         "product": product.name if product.name else "",
                         "product_url": str(product.website_url),
@@ -114,7 +114,7 @@ class banner_credentials_v1(http.Controller):
                             "status": "1",
                             "product_type_name": ','.join(
                                 [str(v.display_name) for v in variant.product_template_attribute_value_ids]),
-                            "main_category_id": product.categ_id.id if product.categ_id.id else 0,
+                            "main_category_id": product.pos_categ_ids[:1].id or 0,
                             "is_wishlist": False,
                             "product_type_url": str(variant.website_url),
                             "product_type_code": variant.default_code if variant.default_code else "",

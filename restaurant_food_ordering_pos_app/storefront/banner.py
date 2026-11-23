@@ -8,7 +8,7 @@ _logger = logging.getLogger(__name__)
 
 
 class ProductPublicCategory(models.Model):
-    _inherit = 'product.public.category'
+    _inherit = 'pos.category'
 
     top_category = fields.Boolean()
     banner = fields.Binary('Banner Image', attachment=True, store=True)
@@ -82,8 +82,8 @@ class MobileBannerElementItems(models.Model):
     category_wise = fields.Boolean('Category Wise?')
     product_id = fields.Many2one('product.template', string="Product", tracking=True)
     categ_id = fields.Many2one(
-        'product.public.category', string="Category", tracking=True, domain="categ_id_domain")
-    sub_categ_ids = fields.Many2many('product.public.category', string="Sub Categories", tracking=True)
+        'pos.category', string="Category", tracking=True, domain="categ_id_domain")
+    sub_categ_ids = fields.Many2many('pos.category', string="Sub Categories", tracking=True)
     element_type = fields.Selection([
         ("banner", "Banner"),
         ("featured product category", "Featured Product Category"),
@@ -119,7 +119,7 @@ class MobileBannerElementItems(models.Model):
     @api.onchange('categ_id')
     def set_sub_categ_domain(self):
         if self.categ_id:
-            child_ids = self.env['product.public.category'].search(
+            child_ids = self.env['pos.category'].search(
                 [('parent_id', '=', self.categ_id.id)], order='sequence', limit=4).ids
             self.sub_categ_ids = child_ids
 
