@@ -26,6 +26,10 @@ class Ecommerce_Api_V1(http.Controller):
         color_configurations = request.env['color.info'].search_read([],['id','name','code','backend_config'])
         image_configurations = request.env['app.image.attachments'].search_read([],['id','name','image_type'])
 
+        # Defaults so the API still responds when a configuration record is missing
+        toolbar_color = menu_color = button_color = background_color = ""
+        logo = background_image = splash_screen_image = ""
+
         for color_configuration in color_configurations:
             if color_configuration['backend_config'] == 'toolbar_color':
                 toolbar_color = color_configuration['code']
