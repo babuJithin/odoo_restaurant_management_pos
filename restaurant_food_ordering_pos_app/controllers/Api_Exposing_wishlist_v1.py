@@ -14,6 +14,21 @@ from werkzeug.urls import url_join
 from .Api_Exposing_product_v1 import _product_type_prices
 
 
+def _wishlist_offer_price(template, base_price):
+    """Same offer-price logic as the product listing APIs; returns 0 if no active offer."""
+    try:
+        pricelist = request.env['product.pricelist.item'].sudo().search(
+            [('product_tmpl_id', '=', int(template.id))])
+        offers = [base_price - (base_price * item.percent_price / 100) if item.percent_price > 0 else (
+            base_price - item.discount_amount if item.discount_amount > 0 else item.fixed_price)
+                  for item in pricelist if
+                  (not item.date_end and item.pricelist_id.selectable) or (
+                          item.date_end and item.date_end >= datetime.now() and item.pricelist_id.selectable)]
+        return offers[0]
+    except Exception:
+        return 0
+
+
 class Ecommerce_Api_Wishlist_V1(http.Controller):
 
 
@@ -80,7 +95,8 @@ class Ecommerce_Api_Wishlist_V1(http.Controller):
                         "quantity": i.product_id.product_tmpl_id.qty_available or 0,
                         "product_uom": i.product_id.product_tmpl_id.uom_id.name or "",
                         "product_uom_id": i.product_id.product_tmpl_id.uom_id.id or 0,
-                        "price": i.product_id.product_tmpl_id.list_price or 0,
+                        "price": round(_wishlist_offer_price(i.product_id.product_tmpl_id, i.product_id.product_tmpl_id.list_price), 2) or round(i.product_id.product_tmpl_id.list_price, 2) or 0,
+                        "org_price": round(i.product_id.product_tmpl_id.list_price, 2),
                         "status": "1",
                         "available": False,
                         "product_image": _base_url() + "/website/image/product.template/{}/image_1920".format(
@@ -97,7 +113,8 @@ class Ecommerce_Api_Wishlist_V1(http.Controller):
                             [('product_tmpl_id', '=', i.product_id.product_tmpl_id.id)]):
                         vals1 = {
                             "product_type_id": variant.id or 0,
-                            "price": variant.lst_price or 0,
+                            "price": round(_wishlist_offer_price(i.product_id.product_tmpl_id, variant.list_price), 2) or round(i.product_id.product_tmpl_id.list_price, 2) or 0,
+                            "org_price": round(i.product_id.product_tmpl_id.list_price, 2),
                             "quantity": variant.qty_available or 0,
                             "product_uom": variant.uom_id.name or "",
                             "product_uom_id": variant.uom_id.id or 0,
