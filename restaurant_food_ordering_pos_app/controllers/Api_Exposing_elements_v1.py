@@ -5,6 +5,7 @@ from odoo import models, fields, api, _
 from datetime import datetime, date, timedelta
 import logging
 import itertools
+from .Api_Exposing_product_v1 import _product_type_prices
 
 
 _logger = logging.getLogger(__name__)
@@ -83,6 +84,7 @@ class banner_credentials_v1(http.Controller):
                         "product_image": "http://" + str(
                             http.request.httprequest.host) + "/website/image/product.template/{}/image_1920".format(
                             product.id) if product.image_1920 else "False",
+                        "product_type_prices": _product_type_prices(product),
                         "product_type": []}
 
 
