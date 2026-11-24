@@ -6,7 +6,6 @@ from datetime import datetime, date, timedelta
 from odoo.exceptions import UserError
 import itertools
 import logging
-from bs4 import BeautifulSoup
 import re
 import random
 import os
@@ -186,7 +185,7 @@ class Ecommerce_Api_V1(http.Controller):
 
 
 
-    @http.route('/api/v1/insert_shipping_addr',type="json" ,methods=['POST'], auth='public', csrf=False)
+    @http.route('/api/v1/insert_shipping_addr',type="jsonrpc" ,methods=['POST'], auth='public', csrf=False)
     def insertShippingAddress_web_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         if kwargs.get('user_id'):
@@ -271,7 +270,7 @@ class Ecommerce_Api_V1(http.Controller):
                 return json.dumps({'status': False, 'message': 'User not found',
                                    })
             for i in user.partner_id.child_ids:
-                if int(i.id) == int(aid):
+                if i.id == _to_int(aid):
                     if kwargs.get('name') != None:
                         i.name = kwargs.get('name')
                     if kwargs.get('phone') != None:
@@ -291,7 +290,7 @@ class Ecommerce_Api_V1(http.Controller):
                     if kwargs.get('country_id') != None:
                         i.country_id = kwargs.get('country_id')
                     if kwargs.get('state_id') != None:
-                        i.country_id = kwargs.get('country_id')
+                        i.state_id = kwargs.get('state_id')
                     if kwargs.get('company_name') != None:
                         i.company_name_ecom = kwargs.get('company_name')
                     if kwargs.get('type') != None:
@@ -319,9 +318,8 @@ class Ecommerce_Api_V1(http.Controller):
                 user = request.env['res.users'].sudo().search([('id', '=', int(kwargs.get('user_id')))])
             try:
                 for i in user.partner_id.child_ids:
-                    if int(i.id) == int(aid):
+                    if i.id == _to_int(aid):
                         i.active = False
-                        print("dsds")
                 return json.dumps({'status': True, 'message': 'Shipping address is Deleted sucessfully',
                                    })
             except Exception as e:
@@ -370,7 +368,7 @@ class Ecommerce_Api_V1(http.Controller):
             return json.dumps(
                 {'status': False, 'message': "Invalid Adress ID or User ID or Cart ID"})
 
-    @http.route('/api/v1/checkOut', methods=['POST'], type="json", auth='public', csrf=False)
+    @http.route('/api/v1/checkOut', methods=['POST'], type="jsonrpc", auth='public', csrf=False)
     def checkout_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         guest_user = request.env['guest.session']
@@ -530,7 +528,7 @@ class Ecommerce_Api_V1(http.Controller):
     def _sale_history_status(order):
         return {'sent': "Processing", 'sale': "Shipped", 'cancel': "Cancelled"}.get(order.state, "Processing")
 
-    @http.route('/api/v1/orderHistory', methods=['POST'], type='json', auth='public', csrf=False)
+    @http.route('/api/v1/orderHistory', methods=['POST'], type='jsonrpc', auth='public', csrf=False)
     def sale_order_history_web_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         uid = _to_int(kwargs.get('user_id'))

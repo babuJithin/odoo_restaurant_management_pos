@@ -6,8 +6,6 @@ from datetime import datetime, date, timedelta
 import logging
 import itertools
 
-base_url_local = "https://babujithin-odoo-restaurant-management-pos1.odoo.com"
-# base_url_local = "http://localhost:8035"
 
 _logger = logging.getLogger(__name__)
 
@@ -15,10 +13,12 @@ _logger = logging.getLogger(__name__)
 class banner_credentials_v1(http.Controller):
 
 
-    @http.route('/api/v1/mobileHome', type="json", methods=['POST'], auth='public', csrf=False, cors='*')
+    @http.route('/api/v1/mobileHome', type="jsonrpc", methods=['POST'], auth='public', csrf=False, cors='*')
     def mobileHomeBanner_v1(self,**kwargs):
         kwargs = http.request.get_json_data() or kwargs
-        banners = request.env['banner.element'].search([('active', '=', True)], order='sequence')
+        base_url_local = request.env['ir.config_parameter'].sudo().get_param('web.base.url') or \
+            request.httprequest.host_url.rstrip('/')
+        banners = request.env['banner.element'].sudo().search([('active', '=', True)], order='sequence')
         banner_info = []
         for banner in banners:
             if banner.element_type != 'product':
@@ -139,7 +139,7 @@ class banner_credentials_v1(http.Controller):
                             vals1['is_wishlist'] = False
                             vals['is_wishlist'] = False
 
-                    if kwargs.get('location_id'):
+                    if kwargs.get('location_id') and 'delivery_method' in product._fields:
                         location_ids = [x.delivery_location_id.ids for x in product.delivery_method]
                         location_ids = list(itertools.chain(*location_ids))
 

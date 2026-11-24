@@ -2,7 +2,7 @@
     'name': "Android Mobile App for Restaurant Food Ordering POS Application",
     'category': 'Point of Sale',
     'sequence': 10,
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'license': 'Other proprietary',
     'author': "Infintor Solutions",
     "price": 150,

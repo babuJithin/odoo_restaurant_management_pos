@@ -5,7 +5,6 @@ from odoo import models, fields, api, _
 from datetime import datetime, date, timedelta
 import itertools
 import logging
-from bs4 import BeautifulSoup
 import re
 import random
 import os
@@ -15,7 +14,7 @@ from werkzeug.urls import url_join
 
 class Ecommerce_Api_V1(http.Controller):
 
-    @http.route('/api/v1/getAppFeatures', methods=['POST'],type='json',  auth='public', csrf=False)
+    @http.route('/api/v1/getAppFeatures', methods=['POST'],type='jsonrpc',  auth='public', csrf=False)
     def getAppFeatures_v1(self, **kwargs):
         """Api to get configurations for Initialization"""
 
@@ -77,7 +76,7 @@ class Ecommerce_Api_V1(http.Controller):
 
                 }
 
-    @http.route('/api/v1/create_customer', methods=['POST'], type='json', auth='public', csrf=False)
+    @http.route('/api/v1/create_customer', methods=['POST'], type='jsonrpc', auth='public', csrf=False)
     def create_customer_v1(self, **kwargs):
         """API TO ADD NEW USERS"""
         kwargs = http.request.get_json_data() or kwargs
@@ -129,10 +128,12 @@ class Ecommerce_Api_V1(http.Controller):
                            }
                     company_ids = request.env['res.company'].sudo().search([])
                     try:
+                        # 'sel_groups_*' pseudo fields no longer exist in Odoo 19: set the portal group
                         portal = request.env['res.users'].sudo().create(
                             {'phone_number': kwargs.get('phone'),
                              'login': kwargs.get('email'), 'name': kwargs.get('name'),
-                             'password': kwargs.get('password'), 'sel_groups_1_9_10': 10})
+                             'password': kwargs.get('password'),
+                             'group_ids': [(6, 0, [request.env.ref('base.group_portal').id])]})
 
                         portal.company_ids |= company_ids
                         portal.partner_id.sudo().write(val)
@@ -141,7 +142,8 @@ class Ecommerce_Api_V1(http.Controller):
                                 "data": {'uid': portal.id, 'name': portal.name, 'email': portal.login,
                                          'phone_number': portal.phone_number}}
 
-                    except:
+                    except Exception:
+                        _logger.exception("App customer registration failed for %s", kwargs.get('email'))
                         return {'status': False, 'message': 'Something Went Wrong Please Try Again'}
 
                 else:
@@ -159,14 +161,9 @@ class Ecommerce_Api_V1(http.Controller):
                         'message': 'Please enter the OTP send to {0} '.format(otp_registry.email)}
 
 
-    @http.route('/api/v1/customer_login', methods=['POST'],type='json', auth='public', csrf=False, cors='*')
+    @http.route('/api/v1/customer_login', methods=['POST'],type='jsonrpc', auth='public', csrf=False, cors='*')
     def customer_login_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
-        _logger.info("parameters %s",kwargs)
-
-        db = kwargs.get('db') or ''
-        domain = []
-        _logger.info("prameters <%s> ,  <%s>  , <%s>", kwargs.get('login'), kwargs.get('password'),kwargs.get('password'),kwargs.get('db'))
         if not kwargs.get('login'):
             return {'status': False,
                                'message': 'Please enter email address',
@@ -177,11 +174,12 @@ class Ecommerce_Api_V1(http.Controller):
                                }
 
         user_id = request.env['res.users'].sudo().search([('login', '=', kwargs.get('login'))])
-        _logger.info("parameters %s",kwargs)
         if user_id:
             try:
-                uid = request.session.authenticate(db, user_id.login, kwargs.get('password'))
-                user = request.env['res.users'].sudo().search([('id', '=', int(uid))])
+                # Odoo 19 signature: authenticate(env, credential) -> auth_info
+                credential = {'login': user_id.login, 'password': kwargs.get('password'), 'type': 'password'}
+                auth_info = request.session.authenticate(request.env, credential)
+                user = request.env['res.users'].sudo().browse(auth_info['uid'])
 
                 return {'status': True,
                      'message': 'Logged in successfully',
@@ -189,14 +187,14 @@ class Ecommerce_Api_V1(http.Controller):
                               'name': user.name,
                               'email': user.partner_id.email or '',
                               }}
-            except:
+            except Exception:
                 return {'status': False, 'message': 'Wrong Credential',
                      }
         else:
             return {'status': False, 'message': 'Invalid Email Address',
                  }
 
-    @http.route('/api/v1/forgotPassword', methods=['POST'], type="json", auth='public', csrf=False)
+    @http.route('/api/v1/forgotPassword', methods=['POST'], type="jsonrpc", auth='public', csrf=False)
     def forgotWebPassword_v2(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         email = kwargs.get('login')

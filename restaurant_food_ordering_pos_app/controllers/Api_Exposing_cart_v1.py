@@ -98,7 +98,7 @@ def _products_qty(products_info):
 
 class Api_Exposing_Cartv1(http.Controller):
 
-    @http.route('/api/v1/cart/summary', type="json", methods=['POST'], auth='public', csrf=False, cors='*')
+    @http.route('/api/v1/cart/summary', type="jsonrpc", methods=['POST'], auth='public', csrf=False, cors='*')
     def cart_summary_v1(self, **data):
         data = http.request.get_json_data() or data
         customer_id, guest, error = _resolve_customer(data)
@@ -118,7 +118,7 @@ class Api_Exposing_Cartv1(http.Controller):
             _logger.exception("cart/summary failed: %s", e)
             return ({'status': False, 'message': 'Please Pass Correct Valuesyyy', 'id_code': 404})
 
-    @http.route('/api/v1/cart/view', type="json", methods=['POST'], auth='public', csrf=False, cors='*')
+    @http.route('/api/v1/cart/view', type="jsonrpc", methods=['POST'], auth='public', csrf=False, cors='*')
     def cart_view_v1(self, **data):
         data = http.request.get_json_data() or data
         customer_id, guest, error = _resolve_customer(data)
@@ -150,7 +150,7 @@ class Api_Exposing_Cartv1(http.Controller):
             return ({'status': False, 'message': 'Please Pass Correct Cart info', 'id_code': 404})
 
     # add cart create seperate api   pass product ID uom ID and quantity in product info dictionary
-    @http.route('/api/v1/cart/create', type="json", methods=['POST'], auth='public', csrf=False, cors='*')
+    @http.route('/api/v1/cart/create', type="jsonrpc", methods=['POST'], auth='public', csrf=False, cors='*')
     def cart_live_create_v1(self, **data):
         data = http.request.get_json_data() or data
         customer_id, guest, error = _resolve_customer(data)
@@ -184,7 +184,7 @@ class Api_Exposing_Cartv1(http.Controller):
             _logger.info("enterd in Exception  %s" % str(e))
             return ({'status': False, 'message': 'Please Pass Correct Info', "err": str(e)})
 
-    @http.route('/api/v1/cart/update', type="json", methods=['POST'], auth='public', csrf=False, cors='*')
+    @http.route('/api/v1/cart/update', type="jsonrpc", methods=['POST'], auth='public', csrf=False, cors='*')
     def cart_update_v3(self, **data):
         data = http.request.get_json_data() or data
         customer_id, guest, error = _resolve_customer(data)
@@ -232,7 +232,7 @@ class Api_Exposing_Cartv1(http.Controller):
             return ({'status': False, 'message': 'Please Pass Correct Info', 'id_code': 404, 'error': str(e),
                      'cart_id': carts_id.id})
 
-    @http.route('/api/v1/cart/delete', type="json", methods=['POST'], auth='public', csrf=False, cors='*')
+    @http.route('/api/v1/cart/delete', type="jsonrpc", methods=['POST'], auth='public', csrf=False, cors='*')
     def cart_delete_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         customer_id, guest, error = _resolve_customer(kwargs)
@@ -248,7 +248,7 @@ class Api_Exposing_Cartv1(http.Controller):
         return ({'status': False, 'message': 'Invalid Cart ID or Cart Not Found'})
 
     # Cart list is starting from here
-    @http.route('/api/v1/cart/list/summary', type="json", methods=['POST'], auth='public', csrf=False, cors='*')
+    @http.route('/api/v1/cart/list/summary', type="jsonrpc", methods=['POST'], auth='public', csrf=False, cors='*')
     def cart_list_summary_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         if not kwargs.get('uid'):
@@ -264,7 +264,7 @@ class Api_Exposing_Cartv1(http.Controller):
         carts = [{'id': o.id, 'cart_name': o._app_get_reference(), 'amount_total': o.amount_total} for o in orders]
         return (carts if carts else {'status': False, 'message': 'Sorry Your Cart List Is Empty'})
 
-    @http.route('/api/v1/cart/list/view', type="json", methods=['POST'], auth='public', csrf=False, cors='*')
+    @http.route('/api/v1/cart/list/view', type="jsonrpc", methods=['POST'], auth='public', csrf=False, cors='*')
     def cart_list_view_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         if not kwargs.get('uid'):

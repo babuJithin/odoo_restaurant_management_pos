@@ -6,25 +6,30 @@ from datetime import datetime, date, timedelta
 
 import itertools
 
-import pyotp
 import logging
-from bs4 import BeautifulSoup
 import re
 import random
-import geopy
-from geopy.distance import geodesic
 import os
 
 _logger = logging.getLogger(__name__)
 
-base_url = "https://babujithin-odoo-restaurant-management-pos1.odoo.com"
+
+def _to_int(value, default=0):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _base_url():
+    return request.env['ir.config_parameter'].sudo().get_param('web.base.url') or request.httprequest.host_url.rstrip('/')
 
 
 class log_in_credentials_v1(http.Controller):
 
 
 
-    @http.route('/api/v1/allCategory', methods=['POST'], type='json', auth='public', csrf=False)
+    @http.route('/api/v1/allCategory', methods=['POST'], type='jsonrpc', auth='public', csrf=False)
     def getallCategory_list_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         # kwargs = http.request.jsonrequest or kwargs
@@ -33,7 +38,6 @@ class log_in_credentials_v1(http.Controller):
         category_info = []
         product_categories = []
         service_categories = []
-        print(product_categories,service_categories,categories)
         for cat in categories:
             subcategories = request.env['pos.category'].sudo().search(
                 [('parent_id', '=', cat.id)])
@@ -132,7 +136,7 @@ class log_in_credentials_v1(http.Controller):
 
 
 
-    @http.route('/api/v1/subCategory', methods=['POST'], type='json', auth='public', csrf=False)
+    @http.route('/api/v1/subCategory', methods=['POST'], type='jsonrpc', auth='public', csrf=False)
     def getSubCategoryv1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         categ_id = kwargs.get('categ_id')
@@ -229,9 +233,10 @@ class log_in_credentials_v1(http.Controller):
 
 
 
-    @http.route('/api/v1/productBrands', method=['GET'], auth='public', csrf=False)
+    @http.route('/api/v1/productBrands', methods=['GET'], auth='public', csrf=False)
     def get_all_brandLists_v1(self, **kwargs):
         brand = request.env['product.brand'].sudo().search([])
+        base_url = _base_url()
         return json.dumps({'message': 'Brands Available', "message_arabic": "الماركات المتاحة",
                            'brands': [{'id': b.id, 'name': b.name,
                                        'product_count': b.product_count,
@@ -242,25 +247,15 @@ class log_in_credentials_v1(http.Controller):
 
 
 
-    @http.route('/api/v1/brand/products', type='json', methods=['POST'], auth='public', csrf=False)
+    @http.route('/api/v1/brand/products', type='jsonrpc', methods=['POST'], auth='public', csrf=False)
     def getBrandProducts_web_v1(self, **kwargs):
         # kwargs = http.request.jsonrequest or kwargs
         kwargs = http.request.get_json_data() or kwargs
-        offset = int(kwargs.get('offset'))
+        offset = _to_int(kwargs.get('offset'))
         limit = 12
         offset_start = offset * limit
         offset_end = offset_start + limit
-        latitude = (kwargs.get('latitude', 0))
-        longitude = (kwargs.get('longitude', 0))
-        customer_location = (latitude, longitude)
-        seller_shops = request.env['seller.shop'].sudo().search([('active', '=', True)])
-        seller_available_prod = []
-        for seller_shop in seller_shops:
-            seller_location = (seller_shop.latitude, seller_shop.longitude)
-            distance = geodesic(seller_location, customer_location).kilometers
-            if distance <= seller_shop.radius:
-                seller_available_prod.extend(seller_shop.seller_product_ids.ids)
-        domain = [('available_in_pos', '=', True), ('id', 'in', seller_available_prod)]
+        domain = [('available_in_pos', '=', True)]
         if kwargs.get('brandId'):
             domain.append(('brand_id', '=', int(kwargs.get('brandId'))))
             try:
@@ -279,17 +274,14 @@ class log_in_credentials_v1(http.Controller):
             except:
                 products = request.env['product.template'].sudo().search(domain, order='pos_sequence, name')
 
-            product_types = [{'id': i.id, 'name': i.name} for i in products.feed_product_type]
+            product_types = []
             brand_ids = [{'id': i.id, 'name': i.name} for i in
                          request.env['product.brand'].sudo().search([('id', '=', int(kwargs.get('brandId')))])]
 
             if kwargs.get('filtered'):  # {'brand_id':[1783,11],'product_types':[12,14]}
                 filtered_vals = kwargs.get('filtered')
                 product_type = filtered_vals.get('product_types')
-                if product_type != []:
-                    products = [x for x in products if x.feed_product_type.id in product_type]
-                else:
-                    products = products
+                # product type filtering relied on a non-existent 'feed_product_type' field
 
             products = products[offset_start:offset_end]
             if len(products) > 0:
@@ -301,15 +293,15 @@ class log_in_credentials_v1(http.Controller):
                         "brand": product.brand_id.name or "",
                         "qes_product": product.name if product.name else "",
                         "product_url": str(product.website_url),
-                        "qes_product_arabic": product.name_arabic if product.name_arabic else "",
+                        "qes_product_arabic": "",
                         "qes_product_code": product.default_code if product.default_code else "",
                         "qes_product_det": product.description_sale if product.description_sale else "",
                         "qes_quantity": product.virtual_available if product.virtual_available > 0.0 else 0.0,
                         "qes_prize": product.list_price if product.list_price else 0,
-                        "b2b_price": product.b2b_price if product.b2b_price else 0,
+                        "b2b_price": 0,
                         "product_uom": product.uom_id.name if product.uom_id.name else "",
                         "product_uom_id": product.uom_id.id if product.uom_id.id else 0,
-                        "country_of_origin": product.country_id.name if product.country_id.name else "",
+                        "country_of_origin": product.country_of_origin.name or "" if 'country_of_origin' in product._fields else "",
                         "status": "1",
                         "vendor_type": "1",
                         "qes_updated_at": product.write_date.strftime('%Y-%m-%d'),
@@ -335,7 +327,7 @@ class log_in_credentials_v1(http.Controller):
 
                             "is_wishlist": False,
                             "product_type_url": str(variant.website_url),
-                            "product_type_arabic": variant.name_arabic if variant.name_arabic else "",
+                            "product_type_arabic": "",
                             "product_type_code": variant.default_code if variant.default_code else "",
                             "product_type_det": variant.description_sale if variant.description_sale else "",
                             "product_type_image": "http://" + str(
@@ -370,11 +362,11 @@ class log_in_credentials_v1(http.Controller):
 
 
 
-    @http.route('/api/v1/category/products', methods=['POST'], type='json', auth='public', csrf=False)
+    @http.route('/api/v1/category/products', methods=['POST'], type='jsonrpc', auth='public', csrf=False)
     def getCategoryProducts_web_v1(self, **kwargs):
         # kwargs = http.request.jsonrequest or kwargs
         kwargs = http.request.get_json_data() or kwargs
-        offset = int(kwargs.get('offset'))
+        offset = _to_int(kwargs.get('offset'))
         limit = 12
         offset_start = offset * limit
         offset_end = offset_start + limit
@@ -520,7 +512,7 @@ class log_in_credentials_v1(http.Controller):
 
 
 
-    @http.route('/api/v1/product', methods=['POST'], type="json", auth='public', csrf=False)
+    @http.route('/api/v1/product', methods=['POST'], type="jsonrpc", auth='public', csrf=False)
     def getProductWebInfo_v1(self, **kwargs):
 
         kwargs = http.request.get_json_data() or kwargs
@@ -682,11 +674,11 @@ class log_in_credentials_v1(http.Controller):
         else:
             return {'status': False, 'message': 'Please enter Valid productId'}
 
-    @http.route('/api/v1/SearchWeb', methods=['POST'], type="json", auth='public', csrf=False)
+    @http.route('/api/v1/SearchWeb', methods=['POST'], type="jsonrpc", auth='public', csrf=False)
     def search_web_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         catName = kwargs.get('keyword')
-        offset = int(kwargs.get('offset'))
+        offset = _to_int(kwargs.get('offset'))
         limit = 12
         offset_start = offset * limit
         offset_end = offset_start + limit
@@ -792,7 +784,7 @@ class log_in_credentials_v1(http.Controller):
                     vals['is_wishlist'] = False
                     vals1['is_wishlist'] = False
 
-                products_info.append(vals)
+            products_info.append(vals)
         return {'status': True if products_info else False,
                         'message': "Products available" if products_info else "Products Not available",
                         'data': {"search_results": products_info}}

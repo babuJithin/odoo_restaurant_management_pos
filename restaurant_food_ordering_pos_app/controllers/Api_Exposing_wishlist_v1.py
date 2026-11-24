@@ -5,7 +5,6 @@ from odoo import models, fields, api, _,SUPERUSER_ID
 from datetime import datetime, date, timedelta
 import itertools
 import logging
-from bs4 import BeautifulSoup
 import re
 import random
 import os
@@ -16,7 +15,7 @@ from werkzeug.urls import url_join
 class Ecommerce_Api_Wishlist_V1(http.Controller):
 
 
-    @http.route('/api/v1/addWishlist', methods=['POST'] , type='json', auth='public', csrf=False)
+    @http.route('/api/v1/addWishlist', methods=['POST'] , type='jsonrpc', auth='public', csrf=False)
     def add_product_wishlist_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         user = request.env['res.users'].sudo().search([('id', '=', int(kwargs.get('user_id')))])
@@ -37,14 +36,14 @@ class Ecommerce_Api_Wishlist_V1(http.Controller):
         else:
             return {'status': False, 'message': 'You are not a Valid User / Invalid Product'}
 
-    @http.route('/api/v1/removefromwishlist', methods=['POST'],type='json', auth='public', csrf=False)
+    @http.route('/api/v1/removefromwishlist', methods=['POST'],type='jsonrpc', auth='public', csrf=False)
     def remove_product_wishlist_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
 
         user = request.env['res.users'].sudo().search([('id', '=', int(kwargs.get('user_id')))])
         product = request.env['product.product'].sudo().search(
             [('product_tmpl_id', '=', int(kwargs.get('product_id')))])
-        if user:
+        if user and product:
             wishlist = request.env['product.wishlist'].sudo().search([('product_id', '=', product[0].id), (
                 'partner_id', '=', int(user.partner_id.id))])
             if wishlist:
@@ -56,7 +55,7 @@ class Ecommerce_Api_Wishlist_V1(http.Controller):
         else:
             return {'status': False, 'message': 'You are not a Valid User'}
 
-    @http.route('/api/v1/userWishlist', methods=['POST'], type='json', auth='public', csrf=False)
+    @http.route('/api/v1/userWishlist', methods=['POST'], type='jsonrpc', auth='public', csrf=False)
     def all_wishlis_web_v1(self, **kwargs):
         kwargs = http.request.get_json_data() or kwargs
         user = request.env['res.users'].sudo().search([('id', '=', int(kwargs.get('user_id')))])
