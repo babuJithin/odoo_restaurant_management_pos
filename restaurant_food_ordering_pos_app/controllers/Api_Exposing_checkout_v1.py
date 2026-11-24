@@ -205,11 +205,14 @@ class Ecommerce_Api_V1(http.Controller):
                     country = request.env['res.country'].sudo().search([('id','=',int(kwargs.get("country_id")))],limit=1)
                     if not country:
                         return ({'status': False, 'message': 'Invalid Country ID'})
-                print(kwargs.get('company_name'),"$$$$$$$$$$$$$$$$$$444")
+                # res.partner disallows sudo x2many commands in Odoo 19 (writing
+                # child_ids would run as the public user), so set parent_id directly
                 address = request.env['res.partner'].sudo().create(
                     {
+                     'parent_id': user.partner_id.id,
                      'guest_user_id':int(kwargs.get('user_id')),
-                     'type': kwargs.get('type') or '',
+                     # a 'contact' child would push its address up to the parent partner
+                     'type': kwargs.get('type') if kwargs.get('type') in ('delivery', 'invoice') else 'delivery',
                      'name': kwargs.get('name') or '',
                      'phone': kwargs.get('phone'),
                      'email': kwargs.get('email'),
@@ -217,13 +220,11 @@ class Ecommerce_Api_V1(http.Controller):
                      'street': kwargs.get('street'),
                      'street2': kwargs.get('street1'),
                      'country_id':country.id if country else False,
-                     'state_id':kwargs.get('state_id'),
+                     'state_id': _to_int(kwargs.get('state_id')) or False,
                      'company_name_ecom': kwargs.get('company_name'),
                      'city': kwargs.get('city'),
                      'zip': kwargs.get('zip')})
 
-
-                user.partner_id.sudo().write({'child_ids': [(4, address.id)]})
                 return {'status': True, 'message': 'Shipping address is created sucessfully',
                                    'data': {
                                        'type': address.type,
@@ -270,7 +271,7 @@ class Ecommerce_Api_V1(http.Controller):
                 return json.dumps({'status': False, 'message': 'User not found',
                                    })
             for i in user.partner_id.child_ids:
-                if i.id == _to_int(aid):
+                if i.id == _to_int(aid) and i.guest_user_id == int(user_id):
                     if kwargs.get('name') != None:
                         i.name = kwargs.get('name')
                     if kwargs.get('phone') != None:
@@ -318,7 +319,7 @@ class Ecommerce_Api_V1(http.Controller):
                 user = request.env['res.users'].sudo().search([('id', '=', int(kwargs.get('user_id')))])
             try:
                 for i in user.partner_id.child_ids:
-                    if i.id == _to_int(aid):
+                    if i.id == _to_int(aid) and i.guest_user_id == int(user_id):
                         i.active = False
                 return json.dumps({'status': True, 'message': 'Shipping address is Deleted sucessfully',
                                    })
