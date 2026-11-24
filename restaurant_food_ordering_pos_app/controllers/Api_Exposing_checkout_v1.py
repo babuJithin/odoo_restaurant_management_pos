@@ -1,6 +1,7 @@
 from odoo.http import request
 import json
 from odoo import http
+from .Api_Exposing_product_v1 import _base_url
 from odoo import models, fields, api, _,SUPERUSER_ID
 from datetime import datetime, date, timedelta
 from odoo.exceptions import UserError
@@ -508,8 +509,7 @@ class Ecommerce_Api_V1(http.Controller):
 
     @staticmethod
     def _history_line(product, qty, uom, price_unit, subtotal, status):
-        return {'productName': product.name or "", 'image': "http://" + str(
-            http.request.httprequest.host) + "/website/image/product.product/{}/image_1920".format(
+        return {'productName': product.name or "", 'image': _base_url() + "/website/image/product.product/{}/image_1920".format(
             product.id) if product.image_1920 else "",
                 'status': status or "",
                 'quantity': qty or 0, 'product_uom': uom.name or "",

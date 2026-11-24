@@ -1,6 +1,7 @@
 from odoo.http import request
 import json
 from odoo import http
+from .Api_Exposing_product_v1 import _base_url
 from odoo import models, fields, api, _,SUPERUSER_ID
 from datetime import datetime, date, timedelta
 import itertools
@@ -82,12 +83,10 @@ class Ecommerce_Api_Wishlist_V1(http.Controller):
                         "price": i.product_id.product_tmpl_id.list_price or 0,
                         "status": "1",
                         "available": False,
-                        "product_image": "http://" + str(
-                            http.request.httprequest.host) + "/website/image/product.template/{}/image_1920".format(
+                        "product_image": _base_url() + "/website/image/product.template/{}/image_1920".format(
                             i.product_id.product_tmpl_id.id) if i.product_id.product_tmpl_id.image_1920 else "False",
 
-                        "product_image_512": "http://" + str(
-                            http.request.httprequest.host) + "/website/image/product.template/{}/image_512".format(
+                        "product_image_512": _base_url() + "/website/image/product.template/{}/image_512".format(
                             i.product_id.product_tmpl_id.id) if i.product_id.product_tmpl_id.image_512 else "False",
 
                         "product_type_prices": _product_type_prices(i.product_id.product_tmpl_id),

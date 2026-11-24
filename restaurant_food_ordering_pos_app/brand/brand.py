@@ -22,6 +22,12 @@ class BrandProduct(models.Model):
     text_color = fields.Selection([('text-dark', 'text-dark'), ('text-white', 'text-white')], string='Text Color Code')
     top_brand = fields.Boolean()
 
+    def _can_return_content(self, field_name=None, access_token=None):
+        # brand logos are shown to the public mobile app via /web/image
+        if field_name == 'brand_image':
+            return True
+        return super()._can_return_content(field_name, access_token)
+
     @api.depends('member_ids')
     def _compute_product_count(self):
         for record in self:

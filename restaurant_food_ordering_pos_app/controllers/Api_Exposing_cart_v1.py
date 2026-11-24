@@ -2,6 +2,7 @@ import json
 import logging
 
 from odoo import http
+from .Api_Exposing_product_v1 import _base_url
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -61,7 +62,7 @@ def _line_info(line, keys):
         # line price everywhere (summary already used it; view/create/update used list_price)
         'price': round(line.price_unit, 2) or 0,
         'delivery_methods': [],
-        'image': "http://" + str(request.httprequest.host) + "/website/image/product.template/{}/image_1920".format(
+        'image': _base_url() + "/website/image/product.template/{}/image_1920".format(
             template.id) if template.image_1920 else "False",
         'sub_total': round(line.price_subtotal, 2) or 0,
         'product_note': template.product_note or "",

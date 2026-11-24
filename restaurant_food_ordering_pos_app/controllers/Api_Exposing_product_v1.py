@@ -30,7 +30,7 @@ def _product_type_prices(product):
     [{"name": <attribute>, "value": [{"price", "parent_name", "name", "html_code", "image"}]}]
     Returns [] for products without attributes (the app opens the variant sheet only when non-empty).
     """
-    host = "http://" + str(http.request.httprequest.host)
+    host = _base_url()
     result = []
     for line in product.attribute_line_ids:
         values = []
@@ -75,11 +75,9 @@ class log_in_credentials_v1(http.Controller):
                     "category_type": cat.category_type if cat.category_type else "",
                     "parent_category": cat.parent_id.id if cat.parent_id.id else 0,
                     "status": "1",
-                    "banner_image": "http://" + str(
-                        http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
+                    "banner_image": _base_url() + "/web/image/pos.category/{}/banner".format(
                         cat.id) if cat.banner else "False",
-                    "category_image": "http://" + str(
-                        http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                    "category_image": _base_url() + "/web/image/pos.category/{}/image_512".format(
                         cat.id) if cat.image_512 else "False",
                     "created_at_date": cat.create_date.strftime('%Y-%m-%d'),
                     "created_at": cat.create_date.strftime('%Y-%m-%d'),
@@ -94,11 +92,9 @@ class log_in_credentials_v1(http.Controller):
                          "category_type": subcat.category_type if subcat.category_type else "",
                          "parent_category": subcat.parent_id.id if subcat.parent_id.id else 0,
                          "status": "1",
-                         "banner_image": "http://" + str(
-                             http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
+                         "banner_image": _base_url() + "/web/image/pos.category/{}/banner".format(
                              cat.id) if cat.banner else "False",
-                         "category_image": "http://" + str(
-                             http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                         "category_image": _base_url() + "/web/image/pos.category/{}/image_512".format(
                              subcat.id) if subcat.image_512 else "False",
                          "created_at_date": subcat.create_date.strftime('%Y-%m-%d'),
                          "created_at": subcat.create_date.strftime('%Y-%m-%d'),
@@ -118,11 +114,9 @@ class log_in_credentials_v1(http.Controller):
                              "category": child.name if child.name else "",
                              "parent_category": child.parent_id.id if child.parent_id.id else 0,
                              "status": "1",
-                             "banner_image": "http://" + str(
-                                 http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
+                             "banner_image": _base_url() + "/web/image/pos.category/{}/banner".format(
                                  cat.id) if cat.banner else "False",
-                             "category_image": "http://" + str(
-                                 http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                             "category_image": _base_url() + "/web/image/pos.category/{}/image_512".format(
                                  child.id) if child.image_512 else "False",
                              "created_at_date": child.create_date.strftime('%Y-%m-%d'),
                              "created_at": child.create_date.strftime('%Y-%m-%d'),
@@ -139,8 +133,7 @@ class log_in_credentials_v1(http.Controller):
                                  "category": child1.name if child1.name else "",
                                  "parent_category": child1.parent_id.id if child1.parent_id.id else 0,
                                  "status": "1",
-                                 "category_image": "http://" + str(
-                                     http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                                 "category_image": _base_url() + "/web/image/pos.category/{}/image_512".format(
                                      child1.id) if child1.image_512 else "False",
                                  "created_at_date": child1.create_date.strftime('%Y-%m-%d'),
                                  "created_at": child1.create_date.strftime('%Y-%m-%d'),
@@ -176,11 +169,9 @@ class log_in_credentials_v1(http.Controller):
                     "category_type": cat.category_type if cat.category_type else "",
                     "parent_category": cat.parent_id.id if cat.parent_id.id else 0,
                     "status": "1",
-                    "category_image": "http://" + str(
-                        http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                    "category_image": _base_url() + "/web/image/pos.category/{}/image_512".format(
                         cat.id) if cat.image_512 else "False",
-                    "banner_image": "http://" + str(
-                        http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
+                    "banner_image": _base_url() + "/web/image/pos.category/{}/banner".format(
                         cat.id) if cat.banner else "False",
 
                     "created_at_date": cat.create_date.strftime('%Y-%m-%d'),
@@ -195,11 +186,9 @@ class log_in_credentials_v1(http.Controller):
                          "category": subcat.name if subcat.name else "",
                          "parent_category": subcat.parent_id.id if subcat.parent_id.id else 0,
                          "status": "1",
-                         "banner_image": "http://" + str(
-                             http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
+                         "banner_image": _base_url() + "/web/image/pos.category/{}/banner".format(
                              cat.id) if cat.banner else "False",
-                         "category_image": "http://" + str(
-                             http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                         "category_image": _base_url() + "/web/image/pos.category/{}/image_512".format(
                              subcat.id) if subcat.image_512 else "False",
                          "created_at_date": subcat.create_date.strftime('%Y-%m-%d'),
                          "created_at": subcat.create_date.strftime('%Y-%m-%d'),
@@ -218,11 +207,9 @@ class log_in_credentials_v1(http.Controller):
                              "category": child.name if child.name else "",
                              "parent_category": child.parent_id.id if child.parent_id.id else 0,
                              "status": "1",
-                             "banner_image": "http://" + str(
-                                 http.request.httprequest.host) + "/web/image/pos.category/{}/banner".format(
+                             "banner_image": _base_url() + "/web/image/pos.category/{}/banner".format(
                                  cat.id) if cat.banner else "False",
-                             "category_image": "http://" + str(
-                                 http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                             "category_image": _base_url() + "/web/image/pos.category/{}/image_512".format(
                                  child.id) if child.image_512 else "False",
                              "created_at_date": child.create_date.strftime('%Y-%m-%d'),
                              "created_at": child.create_date.strftime('%Y-%m-%d'),
@@ -238,8 +225,7 @@ class log_in_credentials_v1(http.Controller):
                                  "category": child1.name if child1.name else "",
                                  "parent_category": child1.parent_id.id if child1.parent_id.id else 0,
                                  "status": "1",
-                                 "category_image": "http://" + str(
-                                     http.request.httprequest.host) + "/web/image/pos.category/{}/image_512".format(
+                                 "category_image": _base_url() + "/web/image/pos.category/{}/image_512".format(
                                      child1.id) if child1.image_512 else "False",
                                  "created_at_date": child1.create_date.strftime('%Y-%m-%d'),
                                  "created_at": child1.create_date.strftime('%Y-%m-%d'),
@@ -328,8 +314,7 @@ class log_in_credentials_v1(http.Controller):
                         "vendor_type": "1",
                         "qes_updated_at": product.write_date.strftime('%Y-%m-%d'),
                         "created_at_date": product.create_date.strftime('%Y-%m-%d'),
-                        "qes_product_image": "http://" + str(
-                            http.request.httprequest.host) + "/website/image/product.template/{}/image_1920".format(
+                        "qes_product_image": _base_url() + "/website/image/product.template/{}/image_1920".format(
                             product.id) if product.image_1920 else "False",
                         "product_type_prices": _product_type_prices(product),
                         "product_type": []}
@@ -353,8 +338,7 @@ class log_in_credentials_v1(http.Controller):
                             "product_type_arabic": "",
                             "product_type_code": variant.default_code if variant.default_code else "",
                             "product_type_det": variant.description_sale if variant.description_sale else "",
-                            "product_type_image": "http://" + str(
-                                http.request.httprequest.host) + "/website/image/product.product/{}/image_1920".format(
+                            "product_type_image": _base_url() + "/website/image/product.product/{}/image_1920".format(
                                 variant.id) if variant.image_1920 else "False",
                         }
 
@@ -460,8 +444,7 @@ class log_in_credentials_v1(http.Controller):
                             [categ_id for categ_id in product.pos_categ_ids if categ_id.parent_id.id == False][
                                 0].id if [categ_id for categ_id in product.pos_categ_ids if
                                           categ_id.parent_id.id == False] else "",
-                        "product_image": "http://" + str(
-                            http.request.httprequest.host) + "/website/image/product.template/{}/image_1920".format(
+                        "product_image": _base_url() + "/website/image/product.template/{}/image_1920".format(
                             product.id) if product.image_1920 else "False",
                         "product_type_prices": _product_type_prices(product),
                         "product_type": []}
@@ -505,8 +488,7 @@ class log_in_credentials_v1(http.Controller):
                             "product_type_url": str(variant.website_url),
                             "product_type_code": variant.default_code if variant.default_code else "",
                             "product_type_description": variant.description_sale if variant.description_sale else "",
-                            "product_type_image": "http://" + str(
-                                http.request.httprequest.host) + "/website/image/product.product/{}/image_1920".format(
+                            "product_type_image": _base_url() + "/website/image/product.product/{}/image_1920".format(
                                 variant.id) if variant.image_1920 else "False",
                         }
 
@@ -573,15 +555,13 @@ class log_in_credentials_v1(http.Controller):
                     "price": round(offer_price, 2) if offer_price else round(product.list_price, 2) or 0,
                     "org_price": round(product.list_price, 2),
                     "country_of_origin": product.country_of_origin.name if product.country_of_origin.name else "",
-                    "country_of_origin_flag": "http://" + str(
-                        http.request.httprequest.host) + product.country_of_origin.image_url if product.country_of_origin.image_url else "",
+                    "country_of_origin_flag": _base_url() + product.country_of_origin.image_url if product.country_of_origin.image_url else "",
                     "main_category_id":
                         [categ_id for categ_id in product.pos_categ_ids if categ_id.parent_id.id == False][
                             0].id if [categ_id for categ_id in product.pos_categ_ids if
                                       categ_id.parent_id.id == False] else "",
                     "status": "1",
-                    "product_image": "http://" + str(
-                        http.request.httprequest.host) + "/website/image/product.template/{}/image_1920".format(
+                    "product_image": _base_url() + "/website/image/product.template/{}/image_1920".format(
                         product.id) if product.image_1920 else "False",
                     "is_wishlist": False,
                     "images": [],
@@ -618,8 +598,7 @@ class log_in_credentials_v1(http.Controller):
                         "brand": product.brand_id.name or "",
                         "status": "1",
                         "country_of_origin": variant.country_of_origin.name if variant.country_of_origin.name else "",
-                        "country_of_origin_flag": "http://" + str(
-                            http.request.httprequest.host) + variant.country_of_origin.image_url if variant.country_of_origin.image_url else "",
+                        "country_of_origin_flag": _base_url() + variant.country_of_origin.image_url if variant.country_of_origin.image_url else "",
                         "product_type_name": ','.join(
                             [str(v.display_name) for v in variant.product_template_attribute_value_ids]),
                         "main_category_id":
@@ -630,8 +609,7 @@ class log_in_credentials_v1(http.Controller):
                         "product_type_url": str(variant.website_url),
                         "product_type_code": variant.default_code if variant.default_code else "",
                         "product_type_description": variant.description_sale if variant.description_sale else "",
-                        "product_type_image": "http://" + str(
-                            http.request.httprequest.host) + "/website/image/product.product/{}/image_1920".format(
+                        "product_type_image": _base_url() + "/website/image/product.product/{}/image_1920".format(
                             variant.id) if variant.image_1920 else "False",
                     }
 
@@ -641,8 +619,7 @@ class log_in_credentials_v1(http.Controller):
                         "product_image_id": i.id or 0,
                         "product_flag": i.display_name or "",
                         "product_id": product.id or 0,
-                        "product_image": "http://" + str(
-                            http.request.httprequest.host) + "/website/image/product.image/{}/image_1920".format(
+                        "product_image": _base_url() + "/website/image/product.image/{}/image_1920".format(
                             i.id) if i.image_1920 else "False",
                     }
                     vals['images'].append(vals2)
@@ -678,8 +655,7 @@ class log_in_credentials_v1(http.Controller):
                             "product_code": main_category_template.default_code if main_category_template.default_code else "",
                             "product_description": main_category_template.description_sale if main_category_template.description_sale else "",
                             "price": round(offer_price, 2) if offer_price else round(main_category_template.list_price, 2) or 0,
-                            "product_image": "http://" + str(
-                                http.request.httprequest.host) + "/website/image/product.template/{}/image_1920".format(
+                            "product_image": _base_url() + "/website/image/product.template/{}/image_1920".format(
                                 main_category_template.id) if main_category_template.image_1920 else "False",
 
                         }
@@ -756,8 +732,7 @@ class log_in_credentials_v1(http.Controller):
 
                 "updated_at": product.write_date.strftime('%Y-%m-%d'),
                 "created_at_date": product.create_date.strftime('%Y-%m-%d'),
-                "product_image": "http://" + str(
-                    http.request.httprequest.host) + "/website/image/product.template/{}/image_1920".format(
+                "product_image": _base_url() + "/website/image/product.template/{}/image_1920".format(
                     product.id) if product.image_1920 else product.image_1920,
                 "is_wishlist": False,
                 "product_type_prices": _product_type_prices(product),
@@ -783,8 +758,7 @@ class log_in_credentials_v1(http.Controller):
                     "product_type_url": str(variant.website_url),
                     "product_type_code": variant.default_code if variant.default_code else "",
                     "product_type_det": variant.description_sale if variant.description_sale else "",
-                    "product_type_image": "http://" + str(
-                        http.request.httprequest.host) + "/website/image/product.product/{}/image_1920".format(
+                    "product_type_image": _base_url() + "/website/image/product.product/{}/image_1920".format(
                         variant.id) if variant.image_1920 else "False",
                 }
 
