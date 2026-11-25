@@ -318,6 +318,30 @@ class PosOrder(models.Model):
         self.session_id = session
         return True
 
+    def _app_delivery_preset(self):
+        """'Delivery' POS preset (identification = address) for this order's point of sale.
+        Prefers a preset enabled on the order's config, then any address preset, then the
+        pos_restaurant default 'Delivery' preset."""
+        self.ensure_one()
+        config = self.config_id
+        presets = config.available_preset_ids | config.default_preset_id
+        preset = presets.filtered(lambda p: p.identification == 'address' and not p.is_return)[:1]
+        if not preset:
+            preset = self.env['pos.preset'].sudo().search(
+                [('identification', '=', 'address'), ('is_return', '=', False)], limit=1)
+        if not preset:
+            preset = self.env.ref('pos_restaurant.pos_delivery_preset', raise_if_not_found=False)
+        return preset or self.env['pos.preset']
+
+    def _app_set_delivery(self, address):
+        """Mark the app order as a home delivery to the given address."""
+        self.ensure_one()
+        vals = {'partner_shipping_id': address.id}
+        preset = self._app_delivery_preset()
+        if preset:
+            vals['preset_id'] = preset.id
+        self.write(vals)
+
     def _app_register_payment(self, payment_method, transaction_id=None):
         """Pay the order in full with one pos.payment and finalise it like the POS does."""
         self.ensure_one()

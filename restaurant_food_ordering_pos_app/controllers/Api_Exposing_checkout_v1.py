@@ -398,6 +398,12 @@ class Ecommerce_Api_V1(http.Controller):
         address = request.env['res.partner'].sudo().search([('id', '=', _to_int(kwargs.get('address_id')))])
         if not address:
             return {'status': False, 'message': ' Shipping Address Not Found'}
+        if guest_user:
+            owns_address = address.guest_user_id == guest_user.id
+        else:
+            owns_address = address == user.partner_id or address.parent_id == user.partner_id
+        if not owns_address:
+            return {'status': False, 'message': 'Shipping Address does not belong to this user'}
         if not cart_id.lines:
             return {'status': False, 'message': 'No Cart Lines Found'}
 
@@ -452,6 +458,8 @@ class Ecommerce_Api_V1(http.Controller):
 
         candidate_method = payment_type_rec.pos_payment_method_id if pay_now and payment_type_rec else None
         cart_id._app_move_to_target_session(candidate_method)
+        # after the session move so the preset matches the restaurant POS presets
+        cart_id._app_set_delivery(address)
         cart_id.name = cart_id._compute_order_name()
 
         if pay_now:
