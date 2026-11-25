@@ -468,6 +468,15 @@ class PosOrder(models.Model):
                 continue
             config.notify_synchronisation(session.id, self.env.context.get('device_identifier', 0))
             config._notify('ORDER_STATE_CHANGED', {})
+            # sound + popup on the open POS screens (see static/src/pos/app_new_order.js)
+            for order in self.filtered(lambda o: o.config_id == config):
+                config._notify('APP_NEW_ORDER', {
+                    'order_id': order.id,
+                    'name': order._app_get_reference() or order.name,
+                    'customer': order.partner_id.name or '',
+                    'amount': order.amount_total,
+                    'session_id': session.id,
+                })
 
 
 class PosSession(models.Model):

@@ -36,6 +36,16 @@
         </xpath>
     </t>
 
+    <!-- Navbar: number of app orders waiting to be accepted -->
+    <t t-name="restaurant_food_ordering_pos_app.Navbar" t-inherit="point_of_sale.Navbar" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('orders-button')]" position="inside">
+            <span t-if="pos.appWaitingOrderCount" class="badge rounded-pill text-bg-danger ms-1"
+                  title="Mobile app orders waiting">
+                <i class="fa fa-mobile me-1"/><t t-esc="pos.appWaitingOrderCount"/>
+            </span>
+        </xpath>
+    </t>
+
     <!-- Orders screen: status badge in the list + actions on the selected order -->
     <t t-name="restaurant_food_ordering_pos_app.TicketScreen" t-inherit="point_of_sale.TicketScreen" t-inherit-mode="extension">
         <xpath expr="//div[@id='order-tags']" position="after">
