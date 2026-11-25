@@ -334,13 +334,38 @@ class PosOrder(models.Model):
         return preset or self.env['pos.preset']
 
     def _app_set_delivery(self, address):
-        """Mark the app order as a home delivery to the given address."""
+        """Mark the app order as a home delivery to the given address.
+        The POS 'Delivery' preset requires the order customer to have a street, so the delivery
+        address (a child contact of the app user) becomes the order customer. Lookups by app user
+        must therefore use ('partner_id', 'child_of', user.partner_id)."""
         self.ensure_one()
-        vals = {'partner_shipping_id': address.id}
+        vals = {'partner_shipping_id': address.id, 'partner_id': address.id}
         preset = self._app_delivery_preset()
         if preset:
             vals['preset_id'] = preset.id
         self.write(vals)
+
+    def _app_cod_payment_method(self, payment_type_rec):
+        """POS payment method to pre-fill for Cash on Delivery orders."""
+        self.ensure_one()
+        allowed = self.config_id.payment_method_ids
+        method = payment_type_rec.pos_payment_method_id if payment_type_rec else self.env['pos.payment.method']
+        if method and method in allowed:
+            return method
+        return allowed.filtered(lambda m: m.is_cash_count)[:1]
+
+    def _app_prefill_payment(self, payment_method):
+        """Add the payment line chosen in the app WITHOUT finalising the order: the POS shows it
+        on the payment screen and the cashier only validates once the order is delivered/paid."""
+        self.ensure_one()
+        amount = self._get_rounded_amount(self.amount_total)
+        if not payment_method or self.currency_id.is_zero(amount) or self.payment_ids:
+            return
+        self.env['pos.payment'].sudo().create({
+            'pos_order_id': self.id,
+            'amount': amount,
+            'payment_method_id': payment_method.id,
+        })
 
     def _app_register_payment(self, payment_method, transaction_id=None):
         """Pay the order in full with one pos.payment and finalise it like the POS does."""

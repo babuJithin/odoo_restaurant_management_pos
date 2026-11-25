@@ -273,7 +273,7 @@ class Api_Exposing_Cartv1(http.Controller):
         customer_id, guest, error = _resolve_customer(kwargs)
         if error:
             return error
-        domain = [('id', '=', _to_int(kwargs.get('list_id'))), ('partner_id', '=', customer_id or 0),
+        domain = [('id', '=', _to_int(kwargs.get('list_id'))), ('partner_id', 'child_of', customer_id or 0),
                   ('is_app_order', '=', True)]
         if guest:
             domain.append(('guest_user_id', '=', guest.id))

@@ -475,6 +475,13 @@ class Ecommerce_Api_V1(http.Controller):
                 cart_id.message_post(body=_("Automatic payment registration failed, please validate the payment "
                                             "manually (transaction %(tx)s): %(err)s",
                                             tx=cart_id.transaction_id or '-', err=str(e)))
+        elif payment_kind == 'COD':
+            try:
+                with request.env.cr.savepoint():
+                    cart_id._app_prefill_payment(cart_id._app_cod_payment_method(payment_type_rec))
+            except Exception:
+                request.env.invalidate_all()
+                _logger.exception("COD payment pre-fill failed for app order %s", cart_id.id)
 
         order_info = []
         for i in cart_id.lines:
@@ -547,8 +554,9 @@ class Ecommerce_Api_V1(http.Controller):
         partner_id = user.partner_id.id
         entries = []  # (sort datetime, vals)
 
+        # checked-out orders carry the delivery address (child contact) as customer
         pos_orders = request.env['pos.order'].sudo().search(
-            [('cart_chekouted', '=', True), ('partner_id', '=', partner_id)])
+            [('cart_chekouted', '=', True), ('partner_id', 'child_of', partner_id)])
         for order in pos_orders:
             status = self._pos_history_status(order)
             vals = {'sale_order_id': order.id or 0,
