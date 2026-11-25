@@ -21,6 +21,13 @@ def _to_int(value, default=0):
         return default
 
 
+def _is_guest(value):
+    """The app may send is_guest as a JSON boolean or as a string ("true"/"True"/"1")."""
+    if isinstance(value, str):
+        return value.strip().lower() in ('true', '1', 'yes')
+    return value is True or value == 1
+
+
 def _base_url():
     return request.env['ir.config_parameter'].sudo().get_param('web.base.url') or request.httprequest.host_url.rstrip('/')
 

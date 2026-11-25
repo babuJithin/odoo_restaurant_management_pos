@@ -3,6 +3,7 @@ import logging
 
 from odoo import http
 from .Api_Exposing_product_v1 import _base_url
+from .Api_Exposing_product_v1 import _is_guest
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ def _resolve_customer(data, uid_key='uid'):
     """Return (partner_id, guest_session, error_dict) for the app user / guest in the request."""
     Guest = request.env['guest.session'].sudo()
     uid = _to_int(data.get(uid_key))
-    if data.get('is_guest') == "true":
+    if _is_guest(data.get('is_guest')):
         guest = Guest.search([('id', '=', uid)]) if uid else Guest
         if not guest:
             return False, Guest, {'status': False, 'message': 'You are not a Valid user'}

@@ -1,6 +1,7 @@
 from odoo.http import request
 import json
 from odoo import http
+from .Api_Exposing_product_v1 import _is_guest
 from odoo import models, fields, api, _
 from datetime import datetime, date, timedelta
 import itertools
@@ -82,7 +83,7 @@ class Ecommerce_Api_V1(http.Controller):
         kwargs = http.request.get_json_data() or kwargs
 
         is_guest = kwargs.get('is_guest')
-        if is_guest == "true":
+        if _is_guest(is_guest):
             obj = request.env['res.users']
             guest_obj = request.env['guest.session']
             public_user = obj.get_res_user_public()

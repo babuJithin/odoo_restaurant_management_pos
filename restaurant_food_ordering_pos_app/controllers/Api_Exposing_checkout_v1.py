@@ -2,6 +2,7 @@ from odoo.http import request
 import json
 from odoo import http
 from .Api_Exposing_product_v1 import _base_url
+from .Api_Exposing_product_v1 import _is_guest
 from odoo import models, fields, api, _,SUPERUSER_ID
 from datetime import datetime, date, timedelta
 from odoo.exceptions import UserError
@@ -116,7 +117,7 @@ class Ecommerce_Api_V1(http.Controller):
             if kwargs.get('user_id'):
                 guest_user = request.env['guest.session']
                 is_guest = kwargs.get('is_guest')
-                if is_guest == "true":
+                if _is_guest(is_guest):
                     guest_user = request.env['guest.session'].sudo().search([('id', '=', int(kwargs.get('user_id')))])
                     if guest_user:
                         user = request.env['res.users'].sudo().get_res_user_public()
@@ -192,7 +193,7 @@ class Ecommerce_Api_V1(http.Controller):
         if kwargs.get('user_id'):
             guest_user = request.env['guest.session']
             is_guest = kwargs.get('is_guest')
-            if is_guest == "true":
+            if _is_guest(is_guest):
                 guest_user = request.env['guest.session'].sudo().search([('id', '=', int(kwargs.get('user_id')))])
                 if guest_user:
                     user = request.env['res.users'].sudo().get_res_user_public()
@@ -260,7 +261,7 @@ class Ecommerce_Api_V1(http.Controller):
         user_id = kwargs.get('user_id')
         if user_id:
             is_guest = kwargs.get('is_guest')
-            if is_guest == "true":
+            if _is_guest(is_guest):
                 guest_user = request.env['guest.session'].sudo().search([('id', '=', int(kwargs.get('user_id')))])
                 if guest_user:
                     user = request.env['res.users'].sudo().get_res_user_public()
@@ -310,7 +311,7 @@ class Ecommerce_Api_V1(http.Controller):
         user_id = kwargs.get('user_id')
         if user_id:
             is_guest = kwargs.get('is_guest')
-            if is_guest == "true":
+            if _is_guest(is_guest):
                 guest_user = request.env['guest.session'].sudo().search([('id', '=', int(kwargs.get('user_id')))])
                 if guest_user:
                     user = request.env['res.users'].sudo().get_res_user_public()
@@ -337,7 +338,7 @@ class Ecommerce_Api_V1(http.Controller):
         if kwargs.get('address_id') and kwargs.get('user_id') and kwargs.get('cart_id'):
             if user_id:
                 is_guest = kwargs.get('is_guest')
-                if is_guest == "true":
+                if _is_guest(is_guest):
                     guest_user = request.env['guest.session'].sudo().search([('id', '=', int(kwargs.get('user_id')))])
                     if guest_user:
                         user = request.env['res.users'].sudo().get_res_user_public()
@@ -377,7 +378,7 @@ class Ecommerce_Api_V1(http.Controller):
         user = request.env['res.users']
         user_id = kwargs.get('user_id')
         if user_id:
-            if kwargs.get('is_guest') == "true":
+            if _is_guest(kwargs.get('is_guest')):
                 guest_user = request.env['guest.session'].sudo().search([('id', '=', _to_int(user_id))])
                 if guest_user:
                     user = request.env['res.users'].sudo().get_res_user_public()
@@ -391,8 +392,8 @@ class Ecommerce_Api_V1(http.Controller):
         PosOrder = request.env['pos.order'].sudo()
         cart_id = PosOrder._get_app_cart(user.partner_id, cart_id=_to_int(kwargs.get('cart_id')),
                                          guest=guest_user or None)
-        if not cart_id.partner_id:
-            return {'status': False, 'message': 'You are not a Valid User'}
+        if not cart_id:
+            return {'status': False, 'message': 'Cart not found or already checked out'}
         if not kwargs.get('address_id'):
             return {'status': False, 'message': 'Invalid Shipping Address For Home Delivery'}
         address = request.env['res.partner'].sudo().search([('id', '=', _to_int(kwargs.get('address_id')))])
