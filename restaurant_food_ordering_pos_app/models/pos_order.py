@@ -31,8 +31,9 @@ class PosOrder(models.Model):
     payment_type = fields.Selection([('card', 'Card'), ('COD', 'Cash on Delivery'), ('online', 'Online')],
                                     'Payment type')
     marketplace_state = fields.Selection(
-        [("new", "New"), ("approved", "Approved"), ("processing", "Processing"), ("shipped", "Shipped"),
-         ("delivered", "Delivered"), ("cancel", "Cancelled")], default="new", copy=False, tracking=True)
+        [("new", "Waiting"), ("approved", "Accepted"), ("processing", "Preparing"), ("shipped", "On the way"),
+         ("delivered", "Delivered"), ("cancel", "Cancelled")], string="App Order Status",
+        default="new", copy=False, tracking=True)
     payment_method = fields.Many2one('payment.type', string="App Payment Type")
     home_delivery_type = fields.Many2one('home.delivery.type', string="Home Delivery Type")
     vehicle_details = fields.Char(string="Vehicle Details")
@@ -368,7 +369,8 @@ class PosOrder(models.Model):
         })
 
     def _app_register_payment(self, payment_method, transaction_id=None):
-        """Pay the order in full with one pos.payment and finalise it like the POS does."""
+        """Register the card/online payment captured by the app. The order is NOT finalised: it
+        stays open in the POS until the cashier marks it delivered (see _app_finalize)."""
         self.ensure_one()
         amount = self._get_rounded_amount(self.amount_total)
         if not self.currency_id.is_zero(amount):
@@ -381,9 +383,70 @@ class PosOrder(models.Model):
                 'payment_status': 'done',
             })
         self.amount_paid = self._compute_amount_paid()
+
+    def _app_finalize(self):
+        """Mark the order paid and deliver the goods, like the POS payment screen does."""
+        self.ensure_one()
+        self.amount_paid = self._compute_amount_paid()
         self.action_pos_order_paid()
         self._create_order_picking()
         self._compute_total_cost_in_real_time()
+
+    # ------------------------------------------------------------------
+    # App order status (driven by the POS cashier)
+    # ------------------------------------------------------------------
+    APP_STATUS_FLOW = ['new', 'approved', 'processing', 'shipped', 'delivered']
+
+    def action_pos_order_paid(self):
+        res = super().action_pos_order_paid()
+        # paid from the POS payment screen (e.g. cash collected at the door) = delivered
+        for order in self:
+            if order.is_app_order and order.cart_chekouted and order.marketplace_state not in ('delivered', 'cancel'):
+                order.marketplace_state = 'delivered'
+        return res
+
+    def app_pos_set_status(self, new_state, config_id=False):
+        """Called from the POS: move checked-out app orders to the given status.
+        Cancel is only allowed while the order is still waiting; payments captured by the app are
+        then removed from the order and must be refunded manually with the payment provider."""
+        flow = self.APP_STATUS_FLOW
+        for order in self.sudo():
+            if not (order.is_app_order and order.cart_chekouted):
+                raise UserError(_("Order %s is not a mobile app order.", order.display_name))
+            if order.state != 'draft' or order.marketplace_state in ('delivered', 'cancel'):
+                raise UserError(_("Order %s is already closed.", order.display_name))
+            current = order.marketplace_state or 'new'
+            if new_state == 'cancel':
+                if current != 'new':
+                    raise UserError(_("Only waiting orders can be cancelled (order %s is %s).",
+                                      order.display_name,
+                                      dict(order._fields['marketplace_state'].selection).get(current)))
+                paid = order.payment_ids.filtered(lambda p: p.payment_status == 'done')
+                if paid:
+                    order.message_post(body=_(
+                        "Order cancelled from the POS. Refund %(amount)s manually (transaction %(tx)s).",
+                        amount=sum(paid.mapped('amount')), tx=order.transaction_id or '-'))
+                order.payment_ids.unlink()
+                order.amount_paid = 0.0
+                order.marketplace_state = 'cancel'
+                order.action_pos_order_cancel()
+                continue
+            if new_state not in flow or flow.index(new_state) != flow.index(current) + 1:
+                raise UserError(_("Order %s cannot go from %s to %s.", order.display_name, current, new_state))
+            if new_state == 'delivered':
+                if order.currency_id.compare_amounts(order._compute_amount_paid(),
+                                                     order._get_rounded_amount(order.amount_total)) < 0:
+                    raise UserError(_("Order %s is not fully paid: open it and register the payment.",
+                                      order.display_name))
+                order._app_finalize()  # also sets marketplace_state = delivered
+            else:
+                order.marketplace_state = new_state
+        for config in self.config_id:
+            if config.current_session_id:
+                config.notify_synchronisation(config.current_session_id.id,
+                                              self.env.context.get('device_identifier', 0))
+        config = self.env['pos.config'].browse(config_id).exists() if config_id else self.config_id[:1]
+        return self.read_pos_data({}, config)
 
     def _app_send_confirmation_mail(self):
         self.ensure_one()

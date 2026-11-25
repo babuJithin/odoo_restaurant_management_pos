@@ -47,6 +47,11 @@
         'store_front_views/deal_views.xml',
         'brand_views/brand_views.xml',
     ],
+    'assets': {
+        'point_of_sale._assets_pos': [
+            'restaurant_food_ordering_pos_app/static/src/pos/**/*',
+        ],
+    },
     'installable': True,
     'application': True,
     'web_icon': 'restaurant_food_ordering_pos_app,static/description/icon.png',

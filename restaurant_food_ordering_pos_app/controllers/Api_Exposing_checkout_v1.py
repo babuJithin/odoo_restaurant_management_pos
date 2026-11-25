@@ -536,9 +536,9 @@ class Ecommerce_Api_V1(http.Controller):
     def _pos_history_status(order):
         if order.state == 'cancel' or order.marketplace_state == 'cancel':
             return "Cancelled"
-        if order.marketplace_state in ('shipped', 'delivered'):
-            return "Shipped"
-        return "Processing"
+        if order.state in ('paid', 'done', 'invoiced') and order.marketplace_state != 'delivered':
+            return "Delivered"
+        return dict(order._fields['marketplace_state'].selection).get(order.marketplace_state or 'new', "Waiting")
 
     @staticmethod
     def _sale_history_status(order):
